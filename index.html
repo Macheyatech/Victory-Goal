@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1020">
+  <meta name="description" content="Victory Goal — Simulation virtuelle de progression par plans.">
+  <title>Victory Goal | Connexion</title>
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+  <main class="auth-page">
+    <section class="auth-shell" aria-label="Victory Goal">
+
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">VG</div>
+        <div>
+          <h1>Victory Goal</h1>
+          <p>Votre progression. Votre parcours.</p>
+        </div>
+      </div>
+
+      <div class="auth-card">
+
+        <div class="auth-heading">
+          <h2 id="auth-title">Connexion</h2>
+          <p id="auth-subtitle">Connectez-vous à votre compte Victory Goal.</p>
+        </div>
+
+        <div class="auth-tabs" role="tablist" aria-label="Authentification">
+          <button
+            type="button"
+            class="auth-tab active"
+            id="login-tab"
+            role="tab"
+            aria-selected="true"
+            aria-controls="login-panel">
+            Connexion
+          </button>
+
+          <button
+            type="button"
+            class="auth-tab"
+            id="signup-tab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="signup-panel">
+            Créer un compte
+          </button>
+        </div>
+
+        <div id="auth-message" class="auth-message" role="alert" aria-live="polite"></div>
+
+        <form id="login-panel" class="auth-form active" novalidate>
+
+          <div class="form-group">
+            <label for="login-email">Adresse e-mail</label>
+            <input
+              type="email"
+              id="login-email"
+              name="email"
+              autocomplete="email"
+              placeholder="Votre adresse e-mail"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label for="login-password">Mot de passe</label>
+            <input
+              type="password"
+              id="login-password"
+              name="password"
+              autocomplete="current-password"
+              placeholder="Votre mot de passe"
+              required>
+          </div>
+
+          <button type="submit" class="primary-button" id="login-button">
+            <span class="button-text">Se connecter</span>
+            <span class="button-loader" aria-hidden="true"></span>
+          </button>
+
+        </form>
+
+        <form id="signup-panel" class="auth-form" novalidate>
+
+          <div class="form-group">
+            <label for="signup-username">Nom d'utilisateur</label>
+            <input
+              type="text"
+              id="signup-username"
+              name="username"
+              autocomplete="username"
+              placeholder="Choisissez votre nom d'utilisateur"
+              minlength="3"
+              maxlength="30"
+              required>
+            <small>3 à 30 caractères.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="signup-phone">Numéro de téléphone</label>
+            <input
+              type="tel"
+              id="signup-phone"
+              name="phone"
+              autocomplete="tel"
+              placeholder="Votre numéro de téléphone"
+              maxlength="30"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label for="signup-email">Adresse e-mail</label>
+            <input
+              type="email"
+              id="signup-email"
+              name="email"
+              autocomplete="email"
+              placeholder="Votre adresse e-mail"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label for="signup-password">Mot de passe</label>
+            <input
+              type="password"
+              id="signup-password"
+              name="password"
+              autocomplete="new-password"
+              placeholder="Créez un mot de passe"
+              minlength="8"
+              required>
+            <small>Minimum 8 caractères.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="signup-password-confirm">Confirmer le mot de passe</label>
+            <input
+              type="password"
+              id="signup-password-confirm"
+              name="password_confirm"
+              autocomplete="new-password"
+              placeholder="Confirmez votre mot de passe"
+              minlength="8"
+              required>
+          </div>
+
+          <button type="submit" class="primary-button" id="signup-button">
+            <span class="button-text">Créer mon compte</span>
+            <span class="button-loader" aria-hidden="true"></span>
+          </button>
+
+        </form>
+
+        <div class="auth-footer">
+          <p>
+            En continuant, vous acceptez que Victory Goal fonctionne comme une
+            <strong>simulation virtuelle</strong>.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <script src="js/supabase-config.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+            </html>
