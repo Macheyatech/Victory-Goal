@@ -3,33 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0b1020">
-  <meta name="description" content="Victory Goal — Simulation virtuelle de progression par plans.">
-  <title>Victory Goal | Connexion</title>
-
+  <meta name="theme-color" content="#050812">
+  <meta name="description" content="Victory Goal — Votre progression. Votre parcours.">
+  <link rel="icon" type="image/png" href="victory-goal-logo.png">
   <link rel="stylesheet" href="css/styles.css">
+  <title>Victory Goal | Connexion</title>
 </head>
 
 <body>
   <main class="auth-page">
-    <section class="auth-shell" aria-label="Victory Goal">
+    <section class="auth-shell">
 
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">VG</div>
-        <div>
-          <h1>Victory Goal</h1>
-          <p>Votre progression. Votre parcours.</p>
-        </div>
-      </div>
+      <header class="brand">
+        <img
+          class="brand-logo"
+          src="assets/victory-goal-logo.png"
+          alt="Victory Goal"
+        >
+      </header>
 
       <div class="auth-card">
 
         <div class="auth-heading">
-          <h2 id="auth-title">Connexion</h2>
-          <p id="auth-subtitle">Connectez-vous à votre compte Victory Goal.</p>
+          <h1 id="auth-title">Connexion</h1>
+          <p id="auth-subtitle">
+            Connectez-vous à votre compte Victory Goal.
+          </p>
         </div>
 
         <div class="auth-tabs" role="tablist" aria-label="Authentification">
+
           <button
             type="button"
             class="auth-tab active"
@@ -49,14 +52,27 @@
             aria-controls="signup-panel">
             Créer un compte
           </button>
+
         </div>
 
-        <div id="auth-message" class="auth-message" role="alert" aria-live="polite"></div>
+        <div
+          id="auth-message"
+          class="auth-message"
+          role="alert"
+          aria-live="polite">
+        </div>
 
-        <form id="login-panel" class="auth-form active" novalidate>
+        <form
+          id="login-panel"
+          class="auth-form active"
+          novalidate>
 
           <div class="form-group">
-            <label for="login-email">Adresse e-mail</label>
+
+            <label for="login-email">
+              Adresse e-mail
+            </label>
+
             <input
               type="email"
               id="login-email"
@@ -64,10 +80,15 @@
               autocomplete="email"
               placeholder="Votre adresse e-mail"
               required>
+
           </div>
 
           <div class="form-group">
-            <label for="login-password">Mot de passe</label>
+
+            <label for="login-password">
+              Mot de passe
+            </label>
+
             <input
               type="password"
               id="login-password"
@@ -75,19 +96,38 @@
               autocomplete="current-password"
               placeholder="Votre mot de passe"
               required>
+
           </div>
 
-          <button type="submit" class="primary-button" id="login-button">
-            <span class="button-text">Se connecter</span>
-            <span class="button-loader" aria-hidden="true"></span>
+          <button
+            type="submit"
+            class="primary-button"
+            id="login-button">
+
+            <span class="button-text">
+              Se connecter
+            </span>
+
+            <span
+              class="button-loader"
+              aria-hidden="true">
+            </span>
+
           </button>
 
         </form>
 
-        <form id="signup-panel" class="auth-form" novalidate>
+        <form
+          id="signup-panel"
+          class="auth-form"
+          novalidate>
 
           <div class="form-group">
-            <label for="signup-username">Nom d'utilisateur</label>
+
+            <label for="signup-username">
+              Nom d'utilisateur
+            </label>
+
             <input
               type="text"
               id="signup-username"
@@ -97,11 +137,19 @@
               minlength="3"
               maxlength="30"
               required>
-            <small>3 à 30 caractères.</small>
+
+            <small>
+              3 à 30 caractères.
+            </small>
+
           </div>
 
           <div class="form-group">
-            <label for="signup-phone">Numéro de téléphone</label>
+
+            <label for="signup-phone">
+              Numéro de téléphone
+            </label>
+
             <input
               type="tel"
               id="signup-phone"
@@ -110,10 +158,15 @@
               placeholder="Votre numéro de téléphone"
               maxlength="30"
               required>
+
           </div>
 
           <div class="form-group">
-            <label for="signup-email">Adresse e-mail</label>
+
+            <label for="signup-email">
+              Adresse e-mail
+            </label>
+
             <input
               type="email"
               id="signup-email"
@@ -121,10 +174,15 @@
               autocomplete="email"
               placeholder="Votre adresse e-mail"
               required>
+
           </div>
 
           <div class="form-group">
-            <label for="signup-password">Mot de passe</label>
+
+            <label for="signup-password">
+              Mot de passe
+            </label>
+
             <input
               type="password"
               id="signup-password"
@@ -133,11 +191,19 @@
               placeholder="Créez un mot de passe"
               minlength="8"
               required>
-            <small>Minimum 8 caractères.</small>
+
+            <small>
+              Minimum 8 caractères.
+            </small>
+
           </div>
 
           <div class="form-group">
-            <label for="signup-password-confirm">Confirmer le mot de passe</label>
+
+            <label for="signup-password-confirm">
+              Confirmer le mot de passe
+            </label>
+
             <input
               type="password"
               id="signup-password-confirm"
@@ -146,23 +212,42 @@
               placeholder="Confirmez votre mot de passe"
               minlength="8"
               required>
+
           </div>
 
-          <button type="submit" class="primary-button" id="signup-button">
-            <span class="button-text">Créer mon compte</span>
-            <span class="button-loader" aria-hidden="true"></span>
+          <button
+            type="submit"
+            class="primary-button"
+            id="signup-button">
+
+            <span class="button-text">
+              Créer mon compte
+            </span>
+
+            <span
+              class="button-loader"
+              aria-hidden="true">
+            </span>
+
           </button>
 
         </form>
 
-        <div class="auth-footer">
+        <footer class="auth-footer">
+
           <p>
-            En continuant, vous acceptez que Victory Goal est votre
+            En continuant, vous acceptez que Victory Goal
+            fonctionne comme une
             <strong>banque virtuelle</strong>.
           </p>
-        </div>
+
+        </footer>
 
       </div>
+
+      <p class="auth-tagline">
+        Votre progression. Votre parcours.
+      </p>
 
     </section>
   </main>
@@ -170,4 +255,4 @@
   <script src="js/supabase-config.js"></script>
   <script src="js/auth.js"></script>
 </body>
-            </html>
+</html>
