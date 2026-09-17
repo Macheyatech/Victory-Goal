@@ -1,278 +1,353 @@
-const supabaseClient = window.vgSupabase;
+const VG_AUTH = {
+  dashboardUrl: "https://victory-goal.vercel.app/dashboard.html",
 
-const loginForm = document.getElementById("login-panel");
-const signupForm = document.getElementById("signup-panel");
+  loginForm: null,
+  signupForm: null,
+  loginTab: null,
+  signupTab: null,
+  authTitle: null,
+  authSubtitle: null,
+  authMessage: null,
+  loginButton: null,
+  signupButton: null,
 
-const loginTab = document.getElementById("login-tab");
-const signupTab = document.getElementById("signup-tab");
+  init() {
+    this.loginForm = document.getElementById("login-panel");
+    this.signupForm = document.getElementById("signup-panel");
+    this.loginTab = document.getElementById("login-tab");
+    this.signupTab = document.getElementById("signup-tab");
+    this.authTitle = document.getElementById("auth-title");
+    this.authSubtitle = document.getElementById("auth-subtitle");
+    this.authMessage = document.getElementById("auth-message");
+    this.loginButton = document.getElementById("login-button");
+    this.signupButton = document.getElementById("signup-button");
 
-const authTitle = document.getElementById("auth-title");
-const authSubtitle = document.getElementById("auth-subtitle");
-const authMessage = document.getElementById("auth-message");
+    this.bindEvents();
+    this.handleAuthState();
+    this.redirectIfAuthenticated();
+  },
 
-const loginButton = document.getElementById("login-button");
-const signupButton = document.getElementById("signup-button");
+  bindEvents() {
+    this.loginTab?.addEventListener("click", () => {
+      this.showTab("login");
+    });
 
-function showMessage(message, type = "info") {
-  authMessage.textContent = message;
-  authMessage.className = `auth-message ${type}`;
-}
+    this.signupTab?.addEventListener("click", () => {
+      this.showTab("signup");
+    });
 
-function clearMessage() {
-  authMessage.textContent = "";
-  authMessage.className = "auth-message";
-}
+    this.loginForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.login();
+    });
 
-function setLoading(button, loading) {
-  if (!button) return;
+    this.signupForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.signup();
+    });
+  },
 
-  button.disabled = loading;
-  button.classList.toggle("loading", loading);
-}
+  showTab(tab) {
+    const isLogin = tab === "login";
 
-function switchTab(tab) {
-  clearMessage();
+    this.loginTab?.classList.toggle("active", isLogin);
+    this.signupTab?.classList.toggle("active", !isLogin);
 
-  const isLogin = tab === "login";
-
-  loginTab.classList.toggle("active", isLogin);
-  signupTab.classList.toggle("active", !isLogin);
-
-  loginTab.setAttribute("aria-selected", String(isLogin));
-  signupTab.setAttribute("aria-selected", String(!isLogin));
-
-  loginForm.classList.toggle("active", isLogin);
-  signupForm.classList.toggle("active", !isLogin);
-
-  authTitle.textContent = isLogin
-    ? "Connexion"
-    : "Créer un compte";
-
-  authSubtitle.textContent = isLogin
-    ? "Connectez-vous à votre compte Victory Goal."
-    : "Créez votre compte pour commencer votre parcours.";
-}
-
-function translateAuthError(error) {
-  const message = String(error?.message || "").toLowerCase();
-
-  if (message.includes("invalid login credentials")) {
-    return "Adresse e-mail ou mot de passe incorrect.";
-  }
-
-  if (message.includes("email not confirmed")) {
-    return "Votre adresse e-mail n'est pas encore confirmée.";
-  }
-
-  if (message.includes("user already registered")) {
-    return "Cette adresse e-mail est déjà utilisée.";
-  }
-
-  if (message.includes("password")) {
-    return "Le mot de passe doit respecter les exigences de sécurité.";
-  }
-
-  if (message.includes("rate limit")) {
-    return "Trop de tentatives. Veuillez patienter quelques instants.";
-  }
-
-  if (message.includes("network")) {
-    return "Problème de connexion. Vérifiez votre Internet puis réessayez.";
-  }
-
-  return "Une erreur est survenue. Veuillez réessayer.";
-}
-
-async function redirectIfAuthenticated() {
-  const {
-    data: { session }
-  } = await supabaseClient.auth.getSession();
-
-  if (session?.user) {
-    window.location.replace("dashboard.html");
-  }
-}
-
-loginTab.addEventListener("click", () => {
-  switchTab("login");
-});
-
-signupTab.addEventListener("click", () => {
-  switchTab("signup");
-});
-
-loginForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  clearMessage();
-
-  const email = document
-    .getElementById("login-email")
-    .value
-    .trim();
-
-  const password = document.getElementById("login-password").value;
-
-  if (!email || !password) {
-    showMessage(
-      "Veuillez remplir tous les champs.",
-      "error"
+    this.loginTab?.setAttribute(
+      "aria-selected",
+      String(isLogin)
     );
-    return;
-  }
 
-  setLoading(loginButton, true);
+    this.signupTab?.setAttribute(
+      "aria-selected",
+      String(!isLogin)
+    );
 
-  try {
-    const { data, error } =
-      await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-      });
+    this.loginForm?.classList.toggle("active", isLogin);
+    this.signupForm?.classList.toggle("active", !isLogin);
 
-    if (error) {
-      throw error;
+    if (this.authTitle) {
+      this.authTitle.textContent = isLogin
+        ? "Connexion"
+        : "Créer un compte";
     }
 
-    if (!data.session) {
-      throw new Error("Session introuvable.");
+    if (this.authSubtitle) {
+      this.authSubtitle.textContent = isLogin
+        ? "Connectez-vous à votre compte Victory Goal."
+        : "Créez votre compte pour commencer votre parcours.";
     }
 
-    showMessage(
-      "Connexion réussie. Redirection...",
-      "success"
-    );
+    this.clearMessage();
+  },
 
-    window.location.replace("dashboard.html");
-  } catch (error) {
-    showMessage(
-      translateAuthError(error),
-      "error"
-    );
-  } finally {
-    setLoading(loginButton, false);
-  }
-});
+  async login() {
+    const email = document
+      .getElementById("login-email")
+      ?.value
+      .trim();
 
-signupForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+    const password = document
+      .getElementById("login-password")
+      ?.value;
 
-  clearMessage();
-
-  const username = document
-    .getElementById("signup-username")
-    .value
-    .trim();
-
-  const phone = document
-    .getElementById("signup-phone")
-    .value
-    .trim();
-
-  const email = document
-    .getElementById("signup-email")
-    .value
-    .trim();
-
-  const password =
-    document.getElementById("signup-password").value;
-
-  const passwordConfirm =
-    document.getElementById("signup-password-confirm").value;
-
-  if (!username || !phone || !email || !password || !passwordConfirm) {
-    showMessage(
-      "Veuillez remplir tous les champs.",
-      "error"
-    );
-    return;
-  }
-
-  if (username.length < 3 || username.length > 30) {
-    showMessage(
-      "Le nom d'utilisateur doit contenir entre 3 et 30 caractères.",
-      "error"
-    );
-    return;
-  }
-
-  if (password.length < 8) {
-    showMessage(
-      "Le mot de passe doit contenir au moins 8 caractères.",
-      "error"
-    );
-    return;
-  }
-
-  if (password !== passwordConfirm) {
-    showMessage(
-      "Les deux mots de passe ne correspondent pas.",
-      "error"
-    );
-    return;
-  }
-
-  setLoading(signupButton, true);
-
-  try {
-    const redirectUrl =
-      `${window.location.origin}/dashboard.html`;
-
-    const { data, error } =
-      await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            username,
-            phone
-          },
-          emailRedirectTo: redirectUrl
-        }
-      });
-
-    if (error) {
-      throw error;
-    }
-
-    if (data.session) {
-      showMessage(
-        "Compte créé avec succès. Redirection...",
-        "success"
+    if (!email || !password) {
+      this.showMessage(
+        "Veuillez remplir tous les champs.",
+        "error"
       );
-
-      window.location.replace("dashboard.html");
       return;
     }
 
-    showMessage(
-      "Votre compte a été créé. Vérifiez votre adresse e-mail pour confirmer votre compte, puis connectez-vous.",
-      "success"
-    );
+    VG_UI.loading(this.loginButton, true);
+    this.clearMessage();
 
-    signupForm.reset();
-  } catch (error) {
-    showMessage(
-      translateAuthError(error),
-      "error"
-    );
-  } finally {
-    setLoading(signupButton, false);
-  }
-});
+    try {
+      const { error } =
+        await window.vgSupabase.auth.signInWithPassword({
+          email,
+          password
+        });
 
-supabaseClient.auth.onAuthStateChange((event, session) => {
-  if (
-    session?.user &&
-    (
-      event === "SIGNED_IN" ||
-      event === "INITIAL_SESSION"
-    )
-  ) {
-    if (!window.location.pathname.endsWith("dashboard.html")) {
-      window.location.replace("dashboard.html");
+      if (error) {
+        throw error;
+      }
+
+      window.location.replace(this.dashboardUrl);
+    } catch (error) {
+      this.showMessage(
+        this.translateError(error),
+        "error"
+      );
+    } finally {
+      VG_UI.loading(this.loginButton, false);
     }
-  }
-});
+  },
 
-redirectIfAuthenticated();
+  async signup() {
+    const username = document
+      .getElementById("signup-username")
+      ?.value
+      .trim();
+
+    const phone = document
+      .getElementById("signup-phone")
+      ?.value
+      .trim();
+
+    const email = document
+      .getElementById("signup-email")
+      ?.value
+      .trim();
+
+    const password = document
+      .getElementById("signup-password")
+      ?.value;
+
+    const passwordConfirm = document
+      .getElementById("signup-password-confirm")
+      ?.value;
+
+    if (!username || !phone || !email || !password || !passwordConfirm) {
+      this.showMessage(
+        "Veuillez remplir tous les champs.",
+        "error"
+      );
+      return;
+    }
+
+    if (username.length < 3 || username.length > 30) {
+      this.showMessage(
+        "Le nom d'utilisateur doit contenir entre 3 et 30 caractères.",
+        "error"
+      );
+      return;
+    }
+
+    if (password.length < 8) {
+      this.showMessage(
+        "Le mot de passe doit contenir au moins 8 caractères.",
+        "error"
+      );
+      return;
+    }
+
+    if (password !== passwordConfirm) {
+      this.showMessage(
+        "Les deux mots de passe ne correspondent pas.",
+        "error"
+      );
+      return;
+    }
+
+    VG_UI.loading(this.signupButton, true);
+    this.clearMessage();
+
+    try {
+      const { data, error } =
+        await window.vgSupabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: this.dashboardUrl,
+            data: {
+              username,
+              phone
+            }
+          }
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.session) {
+        window.location.replace(this.dashboardUrl);
+        return;
+      }
+
+      this.showMessage(
+        "Votre compte a été créé. Vérifiez votre adresse e-mail, puis cliquez sur le lien reçu pour confirmer votre compte.",
+        "success"
+      );
+
+      this.signupForm?.reset();
+    } catch (error) {
+      this.showMessage(
+        this.translateError(error),
+        "error"
+      );
+    } finally {
+      VG_UI.loading(this.signupButton, false);
+    }
+  },
+
+  async redirectIfAuthenticated() {
+    try {
+      const { data, error } =
+        await window.vgSupabase.auth.getSession();
+
+      if (error) {
+        return;
+      }
+
+      if (data?.session) {
+        const currentPage =
+          window.location.pathname.split("/").pop();
+
+        if (currentPage !== "dashboard.html") {
+          window.location.replace(this.dashboardUrl);
+        }
+      }
+    } catch (error) {
+      console.error(
+        "Erreur de vérification de session:",
+        error
+      );
+    }
+  },
+
+  handleAuthState() {
+    window.vgSupabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (
+          event === "SIGNED_IN" &&
+          session &&
+          !window.location.pathname.endsWith("dashboard.html")
+        ) {
+          window.location.replace(this.dashboardUrl);
+        }
+      }
+    );
+  },
+
+  showMessage(message, type = "info") {
+    if (!this.authMessage) {
+      return;
+    }
+
+    VG_UI.message(
+      this.authMessage,
+      message,
+      type
+    );
+  },
+
+  clearMessage() {
+    if (!this.authMessage) {
+      return;
+    }
+
+    VG_UI.clearMessage(this.authMessage);
+  },
+
+  translateError(error) {
+    const message =
+      error?.message ||
+      error?.error_description ||
+      "";
+
+    const normalized = message.toLowerCase();
+
+    if (
+      normalized.includes("invalid login credentials")
+    ) {
+      return "Adresse e-mail ou mot de passe incorrect.";
+    }
+
+    if (
+      normalized.includes("email not confirmed")
+    ) {
+      return "Votre adresse e-mail n'est pas encore confirmée. Vérifiez votre boîte e-mail.";
+    }
+
+    if (
+      normalized.includes("user already registered")
+    ) {
+      return "Cette adresse e-mail est déjà utilisée.";
+    }
+
+    if (
+      normalized.includes("email address") &&
+      normalized.includes("invalid")
+    ) {
+      return "Veuillez saisir une adresse e-mail valide.";
+    }
+
+    if (
+      normalized.includes("password") &&
+      normalized.includes("at least")
+    ) {
+      return "Le mot de passe ne respecte pas les exigences minimales.";
+    }
+
+    if (
+      normalized.includes("rate limit")
+    ) {
+      return "Trop de tentatives. Veuillez patienter avant de réessayer.";
+    }
+
+    if (
+      normalized.includes("username")
+    ) {
+      return "Ce nom d'utilisateur est peut-être déjà utilisé.";
+    }
+
+    if (message) {
+      return message;
+    }
+
+    return "Une erreur est survenue. Veuillez réessayer.";
+  }
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (!window.vgSupabase) {
+    console.error(
+      "Supabase n'est pas disponible."
+    );
+    return;
+  }
+
+  VG_AUTH.init();
+});
