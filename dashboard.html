@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="theme-color"
+    content="#050812">
+
+  <meta
+    name="description"
+    content="Victory Goal — Votre progression. Votre parcours.">
+
+  <link
+    rel="icon"
+    type="image/png"
+    href="victory-goal-logo.png">
+
+  <link
+    rel="stylesheet"
+    href="css/styles.css">
+
+  <title>Victory Goal | Tableau de bord</title>
+</head>
+
+<body>
+
+  <div id="app-loading" class="app-loading">
+    <div class="app-loading-inner">
+      <img
+        src="victory-goal-logo.png"
+        alt="Victory Goal"
+        class="app-loading-logo">
+      <div class="app-spinner"></div>
+      <p>Chargement de votre espace...</p>
+    </div>
+  </div>
+
+  <div
+    id="app"
+    class="dashboard-page"
+    hidden>
+
+    <header class="dashboard-header">
+
+      <div class="dashboard-header-inner">
+
+        <a
+          href="dashboard.html"
+          class="dashboard-brand"
+          aria-label="Victory Goal">
+
+          <img
+            src="victory-goal-logo.png"
+            alt="Victory Goal"
+            class="dashboard-logo">
+
+        </a>
+
+        <div class="dashboard-header-actions">
+
+          <button
+            type="button"
+            class="icon-button"
+            id="refresh-button"
+            aria-label="Actualiser">
+
+            <span aria-hidden="true">↻</span>
+
+          </button>
+
+          <button
+            type="button"
+            class="logout-button"
+            id="logout-button">
+
+            Déconnexion
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <main class="dashboard-main">
+
+      <section
+        class="welcome-section"
+        aria-labelledby="welcome-title">
+
+        <div>
+
+          <p class="section-kicker">
+            VICTORY GOAL
+          </p>
+
+          <h1 id="welcome-title">
+            Bienvenue
+          </h1>
+
+          <p
+            id="welcome-subtitle"
+            class="welcome-subtitle">
+            Votre progression. Votre parcours.
+          </p>
+
+        </div>
+
+      </section>
+
+
+      <section
+        class="profile-card dashboard-card"
+        aria-labelledby="profile-title">
+
+        <div class="card-header">
+
+          <div>
+
+            <p class="card-kicker">
+              MON PROFIL
+            </p>
+
+            <h2 id="profile-title">
+              Mon compte
+            </h2>
+
+          </div>
+
+          <span
+            id="profile-role"
+            class="status-badge">
+            Membre
+          </span>
+
+        </div>
+
+        <div class="profile-content">
+
+          <div class="profile-avatar">
+            <span id="profile-avatar-letter">
+              V
+            </span>
+          </div>
+
+          <div class="profile-details">
+
+            <h3 id="profile-username">
+              —
+            </h3>
+
+            <p id="profile-phone">
+              Téléphone : —
+            </p>
+
+            <p id="profile-email">
+              E-mail : —
+            </p>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <section
+        class="progress-card dashboard-card"
+        aria-labelledby="progress-title">
+
+        <div class="card-header">
+
+          <div>
+
+            <p class="card-kicker">
+              MA PROGRESSION
+            </p>
+
+            <h2 id="progress-title">
+              Niveau actuel
+            </h2>
+
+          </div>
+
+        </div>
+
+        <div
+          id="current-plan-card"
+          class="current-plan-card">
+
+          <div class="plan-main">
+
+            <span class="plan-label">
+              Plan actuel
+            </span>
+
+            <strong
+              id="current-plan-name"
+              class="plan-amount">
+              —
+            </strong>
+
+          </div>
+
+          <div class="plan-progress">
+
+            <div class="progress-info">
+
+              <span>
+                Donations reçues
+              </span>
+
+              <strong id="donation-count">
+                0 / 8
+              </strong>
+
+            </div>
+
+            <div class="progress-track">
+
+              <div
+                id="donation-progress"
+                class="progress-bar"
+                style="width: 0%">
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <section
+        class="plans-section dashboard-card"
+        aria-labelledby="plans-title">
+
+        <div class="card-header">
+
+          <div>
+
+            <p class="card-kicker">
+              PARCOURS
+            </p>
+
+            <h2 id="plans-title">
+              Plans disponibles
+            </h2>
+
+          </div>
+
+        </div>
+
+        <div
+          id="plans-list"
+          class="plans-list">
+
+          <div class="empty-state">
+            <p>
+              Chargement des plans...
+            </p>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <section
+        class="board-section dashboard-card"
+        aria-labelledby="board-title">
+
+        <div class="card-header board-header">
+
+          <div>
+
+            <p class="card-kicker">
+              TABLEAU
+            </p>
+
+            <h2 id="board-title">
+              Ma division
+            </h2>
+
+          </div>
+
+          <button
+            type="button"
+            id="board-refresh-button"
+            class="secondary-button">
+
+            Actualiser
+
+          </button>
+
+        </div>
+
+        <div
+          id="board-plan-info"
+          class="board-plan-info">
+
+          <span id="board-plan-name">
+            —
+          </span>
+
+          <span id="board-division-name">
+            —
+          </span>
+
+        </div>
+
+        <div
+          id="board-container"
+          class="board-container">
+
+          <div class="board-loading">
+            <div class="app-spinner"></div>
+            <p>Chargement du tableau...</p>
+          </div>
+
+        </div>
+
+        <p
+          id="board-note"
+          class="board-note">
+          Les informations affichées dépendent de votre niveau actuel.
+        </p>
+
+      </section>
+
+
+      <section
+        id="next-plan-section"
+        class="next-plan-section dashboard-card"
+        aria-labelledby="next-plan-title"
+        hidden>
+
+        <div class="card-header">
+
+          <div>
+
+            <p class="card-kicker">
+              PROCHAINE ÉTAPE
+            </p>
+
+            <h2 id="next-plan-title">
+              Continuer mon parcours
+            </h2>
+
+          </div>
+
+        </div>
+
+        <div
+          id="next-plan-content"
+          class="next-plan-content">
+
+          <p id="next-plan-description">
+            Votre prochaine étape sera disponible lorsque les conditions
+            de votre plan actuel seront remplies.
+          </p>
+
+          <button
+            type="button"
+            id="apply-next-plan-button"
+            class="primary-button">
+
+            <span class="button-text">
+              Demander l'accès au prochain plan
+            </span>
+
+            <span
+              class="button-loader"
+              aria-hidden="true">
+            </span>
+
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <section
+        class="donation-section dashboard-card"
+        aria-labelledby="donation-title">
+
+        <div class="card-header">
+
+          <div>
+
+            <p class="card-kicker">
+              SIMULATION
+            </p>
+
+            <h2 id="donation-title">
+              Donation virtuelle
+            </h2>
+
+          </div>
+
+        </div>
+
+        <div class="donation-content">
+
+          <p>
+            Les donations de Victory Goal sont entièrement virtuelles
+            et servent uniquement à la simulation.
+          </p>
+
+          <p
+            id="donation-instruction"
+            class="donation-instruction">
+            Sélectionnez un membre actif dans votre tableau pour
+            effectuer une donation virtuelle.
+          </p>
+
+        </div>
+
+      </section>
+
+
+      <section
+        id="pending-section"
+        class="pending-section dashboard-card"
+        aria-labelledby="pending-title"
+        hidden>
+
+        <div class="card-header">
+
+          <div>
+
+            <p class="card-kicker">
+              EN ATTENTE
+            </p>
+
+            <h2 id="pending-title">
+              Ma demande
+            </h2>
+
+          </div>
+
+          <span
+            id="pending-status"
+            class="status-badge pending">
+            En attente
+          </span>
+
+        </div>
+
+        <div
+          id="pending-content"
+          class="pending-content">
+
+          <p>
+            Votre demande est en attente de validation.
+          </p>
+
+          <p id="pending-expiry">
+            —
+          </p>
+
+        </div>
+
+      </section>
+
+
+      <section
+        id="approval-section"
+        class="approval-section dashboard-card"
+        aria-labelledby="approval-title"
+        hidden>
+
+        <div class="card-header">
+
+          <div>
+
+            <p class="card-kicker">
+              VALIDATION
+            </p>
+
+            <h2 id="approval-title">
+              Demandes à valider
+            </h2>
+
+          </div>
+
+        </div>
+
+        <div
+          id="approval-list"
+          class="approval-list">
+
+        </div>
+
+      </section>
+
+
+      <section
+        class="information-section dashboard-card"
+        aria-labelledby="information-title">
+
+        <div class="card-header">
+
+          <div>
+
+            <p class="card-kicker">
+              INFORMATION
+            </p>
+
+            <h2 id="information-title">
+              Comment fonctionne votre parcours ?
+            </h2>
+
+          </div>
+
+        </div>
+
+        <div class="information-list">
+
+          <article class="information-item">
+
+            <span class="information-number">
+              1
+            </span>
+
+            <div>
+              <h3>
+                Votre tableau
+              </h3>
+
+              <p>
+                Votre position et les membres visibles dans votre
+                division sont affichés dans le tableau.
+              </p>
+            </div>
+
+          </article>
+
+          <article class="information-item">
+
+            <span class="information-number">
+              2
+            </span>
+
+            <div>
+              <h3>
+                Votre progression
+              </h3>
+
+              <p>
+                Votre progression dépend des règles du plan auquel
+                vous appartenez.
+              </p>
+            </div>
+
+          </article>
+
+          <article class="information-item">
+
+            <span class="information-number">
+              3
+            </span>
+
+            <div>
+              <h3>
+                Votre prochain plan
+              </h3>
+
+              <p>
+                Les plans se suivent dans l'ordre prévu. Aucun plan
+                supérieur ne peut être sauté.
+              </p>
+            </div>
+
+          </article>
+
+          <article class="information-item">
+
+            <span class="information-number">
+              4
+            </span>
+
+            <div>
+              <h3>
+                Simulation virtuelle
+              </h3>
+
+              <p>
+                Victory Goal fonctionne comme une simulation virtuelle.
+                Aucun dépôt, retrait ou recharge réelle n'est effectué.
+              </p>
+            </div>
+
+          </article>
+
+        </div>
+
+      </section>
+
+    </main>
+
+
+    <footer class="dashboard-footer">
+
+      <img
+        src="victory-goal-logo.png"
+        alt="Victory Goal"
+        class="footer-logo">
+
+      <p>
+        Victory Goal
+      </p>
+
+      <span>
+        Votre progression. Votre parcours.
+      </span>
+
+    </footer>
+
+  </div>
+
+
+  <div
+    id="profile-modal"
+    class="vg-modal"
+    hidden
+    aria-hidden="true">
+
+    <div
+      class="vg-modal-backdrop"
+      data-close-modal>
+    </div>
+
+    <div
+      class="vg-modal-content"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="public-profile-title">
+
+      <button
+        type="button"
+        class="vg-modal-close"
+        id="profile-modal-close"
+        aria-label="Fermer">
+
+        ×
+
+      </button>
+
+      <div class="public-profile">
+
+        <div class="profile-avatar large">
+          <span id="public-profile-letter">
+            V
+          </span>
+        </div>
+
+        <p class="card-kicker">
+          MEMBRE
+        </p>
+
+        <h2 id="public-profile-title">
+          —
+        </h2>
+
+        <div class="public-profile-phone">
+
+          <span>
+            Téléphone
+          </span>
+
+          <strong id="public-profile-phone">
+            —
+          </strong>
+
+        </div>
+
+        <p
+          id="public-profile-role"
+          class="public-profile-role">
+          —
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div
+    id="confirm-modal"
+    class="vg-modal"
+    hidden
+    aria-hidden="true">
+
+    <div
+      class="vg-modal-backdrop"
+      data-close-confirm>
+    </div>
+
+    <div
+      class="vg-modal-content"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-title">
+
+      <button
+        type="button"
+        class="vg-modal-close"
+        id="confirm-modal-close"
+        aria-label="Fermer">
+
+        ×
+
+      </button>
+
+      <div class="confirm-content">
+
+        <p class="card-kicker">
+          CONFIRMATION
+        </p>
+
+        <h2 id="confirm-title">
+          Confirmer l'action
+        </h2>
+
+        <p id="confirm-message">
+          Êtes-vous sûr de vouloir continuer ?
+        </p>
+
+        <div class="confirm-actions">
+
+          <button
+            type="button"
+            id="confirm-cancel"
+            class="secondary-button">
+
+            Annuler
+
+          </button>
+
+          <button
+            type="button"
+            id="confirm-action"
+            class="primary-button">
+
+            Confirmer
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div
+    id="vg-toast-container"
+    class="vg-toast-container"
+    aria-live="polite"
+    aria-atomic="true">
+  </div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
