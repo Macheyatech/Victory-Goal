@@ -1,1230 +1,1474 @@
-const supabaseClient = window.vgSupabase;
+(() => {
+  "use strict";
 
-let currentUser = null;
-let currentProfile = null;
-let visiblePlans = [];
-let currentPlan = null;
-let currentBoard = [];
-let pendingApplication = null;
-let confirmCallback = null;
+  const supabase = window.vgSupabase;
 
-const $ = (id) => document.getElementById(id);
+  let currentUser = null;
+  let currentProfile = null;
+  let visiblePlans = [];
+  let currentPlan = null;
+  let currentBoard = [];
+  let currentMembership = null;
+  let currentProgress = 0;
+  let requiredProgress = 0;
+  let pendingApplication = null;
+  let legendApplications = [];
 
-function firstRow(data) {
-  if (Array.isArray(data)) {
-    return data[0] || null;
+  const $ = (selector) => document.querySelector(selector);
+
+  function escapeHtml(value) {
+    if (window.VG_UI?.escapeHtml) {
+      return window.VG_UI.escapeHtml(value ?? "");
+    }
+
+    const div = document.createElement("div");
+    div.textContent = value ?? "";
+    return div.innerHTML;
   }
 
-  return data || null;
-}
+  function points(value) {
+    if (window.VG_UI?.formatPoints) {
+      return window.VG_UI.formatPoints(value);
+    }
 
-function rows(data) {
-  if (Array.isArray(data)) {
-    return data;
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "V$0";
+
+    return `V$${new Intl.NumberFormat("fr-FR", {
+      maximumFractionDigits: 2
+    }).format(number)}`;
   }
 
-  return data ? [data] : [];
-}
+  function date(value) {
+    if (window.VG_UI?.formatDate) {
+      return window.VG_UI.formatDate(value);
+    }
 
-function escapeHtml(value) {
-  return window.VG_UI.escapeHtml(value ?? "");
-}
+    if (!value) return "—";
 
-function roleLabel(role) {
-  const labels = {
-    legend: "Légende",
-    constructor: "Constructeur",
-    member: "Membre"
-  };
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "—";
 
-  return labels[role] || "Membre";
-}
-
-function statusLabel(status) {
-  const labels = {
-    active: "Actif",
-    pending: "En attente",
-    completed: "Terminé",
-    suspended: "Suspendu"
-  };
-
-  return labels[status] || status || "—";
-}
-
-function showApp() {
-  const loading = $("app-loading");
-  const app = $("app");
-
-  if (loading) {
-    loading.hidden = true;
+    return new Intl.DateTimeFormat("fr-FR", {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }).format(parsed);
   }
 
-  if (app) {
-    app.hidden = false;
-  }
-}
+  function notify(message, type = "info") {
+    if (window.VG_UI?.notify) {
+      window.VG_UI.notify(message, type);
+      return;
+    }
 
-function showLoading() {
-  const loading = $("app-loading");
-
-  if (loading) {
-    loading.hidden = false;
-  }
-}
-
-function showDashboardError(message) {
-  showApp();
-
-  if (window.VG_UI) {
-    window.VG_UI.notify(message, "error");
-  }
-}
-
-async function getSession() {
-  const {
-    data,
-    error
-  } = await supabaseClient.auth.getSession();
-
-  if (error) {
-    throw error;
+    alert(message);
   }
 
-  return data.session;
-}
+  function getErrorMessage(error) {
+    const message = String(
+      error?.message ||
+      error?.error_description ||
+      error ||
+      "Une erreur est survenue."
+    );
 
-async function loadProfile() {
-  const {
-    data,
-    error
-  } = await supabaseClient.rpc(
-    "vg_get_my_profile"
-  );
+    const normalized = message.toLowerCase();
 
-  if (error) {
-    throw error;
+    if (normalized.includes("authentication required")) {
+      return "Vous devez être connecté.";
+    }
+
+    if (normalized.includes("already has a plan")) {
+      return "Vous avez déjà une inscription dans un niveau.";
+    }
+
+    if (normalized.includes("already belongs")) {
+      return "Vous appartenez déjà à ce niveau.";
+    }
+
+    if (normalized.includes("application unavailable")) {
+      return "Cette demande n'est plus disponible.";
+    }
+
+    if (normalized.includes("target slot is occupied")) {
+      return "Cette position est déjà occupée.";
+    }
+
+    if (normalized.includes("only a legend")) {
+      return "Seule une Légende du niveau concerné peut approuver cette demande.";
+    }
+
+    if (normalized.includes("self approval")) {
+      return "Vous ne pouvez pas approuver votre propre demande.";
+    }
+
+    if (normalized.includes("referral code not found")) {
+      return "Le code de parrainage est introuvable.";
+    }
+
+    if (normalized.includes("self referral")) {
+      return "Vous ne pouvez pas utiliser votre propre code de parrainage.";
+    }
+
+    if (normalized.includes("plan is above")) {
+      return "Ce niveau n'est pas encore accessible.";
+    }
+
+    if (normalized.includes("active legend not found")) {
+      return "Aucune Légende active trouvée.";
+    }
+
+    if (normalized.includes("first plan table is full")) {
+      return "La table du premier niveau est actuellement complète.";
+    }
+
+    if (normalized.includes("first plan unavailable")) {
+      return "Le premier niveau n'est pas disponible actuellement.";
+    }
+
+    if (normalized.includes("no next plan")) {
+      return "Aucun niveau supérieur n'est actuellement disponible.";
+    }
+
+    return message;
   }
 
-  currentProfile = firstRow(data);
+  function showLoading(message = "Chargement...") {
+    const loading = $("#dashboard-loading");
 
-  if (!currentProfile) {
-    throw new Error("Profil utilisateur introuvable.");
+    if (loading) {
+      loading.textContent = message;
+      loading.hidden = false;
+    }
   }
 
-  renderProfile();
-}
+  function hideLoading() {
+    const loading = $("#dashboard-loading");
 
-function renderProfile() {
-  const username =
-    currentProfile.username || "Utilisateur";
-
-  const phone =
-    currentProfile.phone || "Non renseigné";
-
-  const role =
-    roleLabel(currentProfile.role);
-
-  window.VG_UI.setText(
-    $("profile-username"),
-    username
-  );
-
-  window.VG_UI.setText(
-    $("profile-phone"),
-    `Téléphone : ${phone}`
-  );
-
-  window.VG_UI.setText(
-    $("profile-email"),
-    `E-mail : ${currentUser?.email || "—"}`
-  );
-
-  window.VG_UI.setText(
-    $("profile-role"),
-    role
-  );
-
-  window.VG_UI.setText(
-    $("profile-avatar-letter"),
-    username.charAt(0).toUpperCase()
-  );
-
-  window.VG_UI.setText(
-    $("welcome-title"),
-    `Bienvenue, ${username}`
-  );
-}
-
-async function loadPlans() {
-  const {
-    data,
-    error
-  } = await supabaseClient.rpc(
-    "vg_get_visible_plans"
-  );
-
-  if (error) {
-    throw error;
+    if (loading) {
+      loading.hidden = true;
+    }
   }
 
-  visiblePlans = rows(data);
+  function setText(selector, value) {
+    const element = $(selector);
 
-  visiblePlans.sort(
-    (a, b) =>
-      Number(a.sequence_no || 0) -
-      Number(b.sequence_no || 0)
-  );
-
-  renderPlans();
-}
-
-function renderPlans() {
-  const container = $("plans-list");
-
-  if (!container) return;
-
-  if (!visiblePlans.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <p>Aucun plan disponible.</p>
-      </div>
-    `;
-    return;
+    if (element) {
+      element.textContent = value ?? "";
+    }
   }
 
-  container.innerHTML = visiblePlans
-    .map((plan) => {
-      const sequence =
-        Number(plan.sequence_no || 0);
+  function setHTML(selector, value) {
+    const element = $(selector);
 
-      const amount =
-        window.VG_UI.formatAmount(plan.amount);
+    if (element) {
+      element.innerHTML = value ?? "";
+    }
+  }
 
-      const isCurrent =
-        currentPlan &&
-        plan.id === currentPlan.id;
+  function getFirstRow(data) {
+    if (Array.isArray(data)) {
+      return data[0] || null;
+    }
 
-      return `
-        <article
-          class="plan-item ${isCurrent ? "current" : ""}"
-          data-plan-id="${escapeHtml(plan.id)}"
-          style="
-            --plan-primary: ${escapeHtml(
-              plan.color_primary || "#168cff"
-            )};
-            --plan-secondary: ${escapeHtml(
-              plan.color_secondary || "#39b9ff"
-            )};
-          ">
+    return data || null;
+  }
 
-          <div class="plan-item-number">
-            ${sequence}
-          </div>
+  function normalizeRole(role) {
+    if (role === "legend") return "Légende";
+    if (role === "constructor") return "Constructeur";
+    return "Membre";
+  }
 
-          <div class="plan-item-info">
+  function getMembershipFromBoard(board) {
+    if (!Array.isArray(board)) return null;
 
-            <span>
-              Plan ${sequence}
-            </span>
+    return (
+      board.find(
+        (member) =>
+          member.user_id === currentUser?.id &&
+          member.membership_status === "active"
+      ) ||
+      board.find((member) => member.user_id === currentUser?.id) ||
+      null
+    );
+  }
 
-            <strong>
-              ${amount}
-            </strong>
+  function getBoardPosition(member) {
+    if (!member) return null;
 
-          </div>
+    return (
+      member.position_no ??
+      member.position ??
+      null
+    );
+  }
 
-          <div class="plan-item-status">
-            ${
-              isCurrent
-                ? "Actuel"
-                : "Accessible"
-            }
-          </div>
+  async function loadProfile() {
+    const { data, error } = await supabase.rpc("vg_get_my_profile");
 
-        </article>
+    if (error) throw error;
+
+    currentProfile = getFirstRow(data);
+
+    if (!currentProfile) {
+      throw new Error("Profil introuvable.");
+    }
+
+    renderProfile();
+  }
+
+  function renderProfile() {
+    if (!currentProfile) return;
+
+    setText("#profile-username", currentProfile.username || "—");
+    setText("#profile-phone", currentProfile.phone || "—");
+    setText("#profile-role", normalizeRole(currentProfile.role));
+
+    const roleElements = document.querySelectorAll(
+      "[data-profile-role]"
+    );
+
+    roleElements.forEach((element) => {
+      element.textContent = normalizeRole(currentProfile.role);
+    });
+
+    const usernameElements = document.querySelectorAll(
+      "[data-profile-username]"
+    );
+
+    usernameElements.forEach((element) => {
+      element.textContent = currentProfile.username || "—";
+    });
+  }
+
+  async function loadPlans() {
+    const { data, error } = await supabase.rpc("vg_get_visible_plans");
+
+    if (error) throw error;
+
+    visiblePlans = Array.isArray(data)
+      ? [...data].sort(
+          (a, b) => Number(a.sequence_no) - Number(b.sequence_no)
+        )
+      : [];
+
+    renderPlans();
+  }
+
+  function renderPlans() {
+    const container =
+      $("#plans-list") ||
+      $(".plans-list") ||
+      $("[data-plans-list]");
+
+    if (!container) return;
+
+    if (!visiblePlans.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          Aucun niveau disponible pour le moment.
+        </div>
       `;
-    })
-    .join("");
-}
-
-async function loadCurrentBoard() {
-  currentPlan = null;
-  currentBoard = [];
-
-  const orderedPlans = [...visiblePlans]
-    .sort(
-      (a, b) =>
-        Number(b.sequence_no || 0) -
-        Number(a.sequence_no || 0)
-    );
-
-  for (const plan of orderedPlans) {
-    const {
-      data,
-      error
-    } = await supabaseClient.rpc(
-      "vg_get_board",
-      {
-        p_plan_id: plan.id
-      }
-    );
-
-    if (error) {
-      continue;
+      return;
     }
 
-    const boardRows = rows(data);
+    container.innerHTML = visiblePlans
+      .map((plan) => {
+        const isCurrent =
+          currentPlan &&
+          plan.id === currentPlan.id;
 
-    if (boardRows.length) {
-      currentPlan = plan;
-      currentBoard = boardRows;
-      break;
-    }
+        return `
+          <article
+            class="plan-card ${isCurrent ? "active" : ""}"
+            data-plan-id="${escapeHtml(plan.id)}"
+          >
+            <div class="plan-card-header">
+              <h3>${escapeHtml(plan.name || "Niveau")}</h3>
+              <span class="plan-points">
+                ${points(plan.plan_points)}
+              </span>
+            </div>
+
+            <div class="plan-card-body">
+              <p>
+                Progression requise :
+                <strong>${Number(plan.required_progress || 0)}</strong>
+              </p>
+            </div>
+          </article>
+        `;
+      })
+      .join("");
   }
 
-  if (currentPlan) {
+  async function loadCurrentBoard() {
+    currentBoard = [];
+    currentPlan = null;
+    currentMembership = null;
+
+    const orderedPlans = [...visiblePlans].sort(
+      (a, b) => Number(b.sequence_no) - Number(a.sequence_no)
+    );
+
+    for (const plan of orderedPlans) {
+      try {
+        const { data, error } = await supabase.rpc(
+          "vg_get_board",
+          {
+            p_plan_id: plan.id
+          }
+        );
+
+        if (error) continue;
+
+        const board = Array.isArray(data) ? data : [];
+
+        if (board.length) {
+          currentPlan = plan;
+          currentBoard = board;
+          currentMembership = getMembershipFromBoard(board);
+          break;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    if (!currentPlan) {
+      renderEmptyBoard();
+      return;
+    }
+
+    await loadCurrentProgress();
     renderCurrentPlan();
     renderBoard();
-  } else {
-    renderNoCurrentPlan();
-  }
-}
-
-function renderCurrentPlan() {
-  if (!currentPlan) return;
-
-  window.VG_UI.setText(
-    $("current-plan-name"),
-    window.VG_UI.formatAmount(currentPlan.amount)
-  );
-
-  window.VG_UI.setText(
-    $("board-plan-name"),
-    `Plan ${currentPlan.sequence_no} — ${window.VG_UI.formatAmount(currentPlan.amount)}`
-  );
-
-  const first =
-    currentBoard.find(
-      (item) =>
-        item.user_id === currentUser?.id &&
-        item.status === "active"
-    );
-
-  const received =
-    Number(
-      first?.received_donations ??
-      first?.donation_count ??
-      first?.donations_received ??
-      0
-    );
-
-  const required =
-    Number(
-      currentPlan.required_donations || 8
-    );
-
-  const percentage =
-    Math.min(
-      100,
-      Math.max(
-        0,
-        (received / required) * 100
-      )
-    );
-
-  window.VG_UI.setText(
-    $("donation-count"),
-    `${received} / ${required}`
-  );
-
-  const progress =
-    $("donation-progress");
-
-  if (progress) {
-    progress.style.width =
-      `${percentage}%`;
   }
 
-  const division =
-    currentBoard[0]?.division_no;
+  async function loadCurrentProgress() {
+    currentProgress = 0;
+    requiredProgress = 0;
 
-  const table =
-    currentBoard[0]?.table_no;
+    if (!currentMembership || !currentPlan) return;
 
-  window.VG_UI.setText(
-    $("board-division-name"),
-    division
-      ? `Division ${division}${table ? ` • Tableau ${table}` : ""}`
-      : "Division actuelle"
-  );
+    requiredProgress =
+      currentProfile?.is_genesis === true
+        ? 10
+        : Number(currentPlan.required_progress || 0);
 
-  renderNextPlanSection();
-}
+    const { data, error } = await supabase
+      .from("vg_events")
+      .select("id,membership_id,event_type,metadata,created_at")
+      .eq("user_id", currentUser.id)
+      .eq("membership_id", currentMembership.membership_id)
+      .eq("event_type", "approval");
 
-function renderNoCurrentPlan() {
-  window.VG_UI.setText(
-    $("current-plan-name"),
-    "Aucun plan"
-  );
+    if (error) {
+      return;
+    }
 
-  window.VG_UI.setText(
-    $("donation-count"),
-    "0 / 8"
-  );
+    const events = Array.isArray(data) ? data : [];
 
-  const progress =
-    $("donation-progress");
+    currentProgress = events.filter((event) => {
+      const metadata = event?.metadata;
 
-  if (progress) {
-    progress.style.width = "0%";
+      return (
+        metadata &&
+        metadata.source === "points_only_simulation"
+      );
+    }).length;
   }
 
-  window.VG_UI.setText(
-    $("board-plan-name"),
-    "Aucun plan"
-  );
+  function renderCurrentPlan() {
+    if (!currentPlan) return;
 
-  window.VG_UI.setText(
-    $("board-division-name"),
-    "—"
-  );
+    setText(
+      "#current-plan-name",
+      currentPlan.name || "—"
+    );
 
-  const container =
-    $("board-container");
+    setText(
+      "#current-plan-amount",
+      points(currentPlan.plan_points)
+    );
 
-  if (container) {
+    setText(
+      "#current-plan-points",
+      points(currentPlan.plan_points)
+    );
+
+    const required =
+      currentProfile?.is_genesis === true
+        ? 10
+        : Number(currentPlan.required_progress || 0);
+
+    requiredProgress = required;
+
+    const progress = Math.min(
+      Number(currentProgress || 0),
+      required
+    );
+
+    setText(
+      "#progress-count",
+      String(progress)
+    );
+
+    setText(
+      "#required-progress",
+      String(required)
+    );
+
+    setText(
+      "#progress-value",
+      `${progress} / ${required}`
+    );
+
+    const percentage =
+      required > 0
+        ? Math.min(100, Math.round((progress / required) * 100))
+        : 0;
+
+    const progressBars = document.querySelectorAll(
+      ".progress-fill, [data-progress-fill]"
+    );
+
+    progressBars.forEach((bar) => {
+      bar.style.width = `${percentage}%`;
+    });
+
+    const progressTexts = document.querySelectorAll(
+      "[data-progress-percent]"
+    );
+
+    progressTexts.forEach((element) => {
+      element.textContent = `${percentage}%`;
+    });
+
+    const role =
+      currentMembership?.member_role ||
+      currentProfile?.role;
+
+    const progressContainer =
+      $("#simulation-progress-area") ||
+      $("[data-simulation-progress]");
+
+    if (progressContainer) {
+      if (role === "legend") {
+        progressContainer.hidden = false;
+
+        progressContainer.innerHTML = `
+          <div class="simulation-progress-card">
+            <div>
+              <strong>Progression de simulation</strong>
+              <p>
+                ${progress} / ${required} progression${required > 1 ? "s" : ""}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              id="simulation-progress-button"
+              class="primary-button"
+              ${progress >= required ? "disabled" : ""}
+            >
+              ${progress >= required
+                ? "Progression terminée"
+                : "Enregistrer une progression"}
+            </button>
+          </div>
+        `;
+
+        const button = $("#simulation-progress-button");
+
+        if (button) {
+          button.addEventListener(
+            "click",
+            recordSimulationProgress
+          );
+        }
+      } else {
+        progressContainer.hidden = true;
+        progressContainer.innerHTML = "";
+      }
+    }
+
+    renderNextPlanButton();
+  }
+
+  function renderNextPlanButton() {
+    const container =
+      $("#next-plan-area") ||
+      $("[data-next-plan]");
+
+    if (!container) return;
+
+    const currentSequence = Number(
+      currentPlan?.sequence_no || 0
+    );
+
+    const nextPlan = visiblePlans.find(
+      (plan) =>
+        Number(plan.sequence_no) === currentSequence + 1
+    );
+
+    if (!nextPlan) {
+      container.innerHTML = "";
+      return;
+    }
+
+    const progressComplete =
+      currentProgress >=
+      Number(
+        currentProfile?.is_genesis
+          ? 10
+          : currentPlan?.required_progress || 0
+      );
+
+    if (!progressComplete) {
+      container.innerHTML = `
+        <div class="next-plan-info">
+          <strong>${escapeHtml(nextPlan.name)}</strong>
+          <p>
+            Continuez votre progression pour débloquer le niveau suivant.
+          </p>
+        </div>
+      `;
+      return;
+    }
+
     container.innerHTML = `
-      <div class="empty-state">
-        <p>
-          Vous n'avez pas encore rejoint un plan.
-        </p>
+      <div class="next-plan-card">
+        <div>
+          <strong>${escapeHtml(nextPlan.name)}</strong>
+          <p>${points(nextPlan.plan_points)}</p>
+        </div>
 
         <button
           type="button"
+          id="apply-next-plan-button"
           class="primary-button"
-          id="first-plan-button">
-          Commencer le parcours
+        >
+          Demander l'accès
         </button>
       </div>
     `;
 
-    const button =
-      $("first-plan-button");
+    const button = $("#apply-next-plan-button");
 
     if (button) {
       button.addEventListener(
         "click",
-        applyToFirstPlan
+        applyToNextPlan
       );
     }
   }
 
-  const nextSection =
-    $("next-plan-section");
+  function renderBoard() {
+    const container =
+      $("#board") ||
+      $("#board-container") ||
+      $(".board-container") ||
+      $("[data-board]");
 
-  if (nextSection) {
-    nextSection.hidden = true;
-  }
-}
+    if (!container) return;
 
-function renderNextPlanSection() {
-  const section =
-    $("next-plan-section");
+    if (!currentBoard.length) {
+      renderEmptyBoard();
+      return;
+    }
 
-  if (!section || !currentPlan) {
-    return;
-  }
+    const boardByPosition = new Map();
 
-  const currentSequence =
-    Number(currentPlan.sequence_no || 0);
+    currentBoard.forEach((member) => {
+      boardByPosition.set(
+        Number(member.position_no),
+        member
+      );
+    });
 
-  const nextPlan =
-    visiblePlans.find(
-      (plan) =>
-        Number(plan.sequence_no || 0) ===
-        currentSequence + 1
-    );
+    const nodes = [];
 
-  if (!nextPlan) {
-    section.hidden = true;
-    return;
-  }
+    for (let position = 1; position <= 11; position += 1) {
+      const member = boardByPosition.get(position);
 
-  section.hidden = false;
+      nodes.push(
+        renderBoardNode(
+          member,
+          position
+        )
+      );
+    }
 
-  window.VG_UI.setText(
-    $("next-plan-description"),
-    `Prochain plan : ${window.VG_UI.formatAmount(nextPlan.amount)}. Votre progression doit respecter l'ordre des plans.`
-  );
-}
-
-function slotTypeLabel(slotType) {
-  const labels = {
-    legend: "Légende",
-    constructor_top: "Constructeur",
-    member_top: "Membre",
-    constructor_bottom: "Constructeur",
-    member_bottom: "Membre"
-  };
-
-  return labels[slotType] || "Membre";
-}
-
-function getBoardMember(item) {
-  return {
-    userId:
-      item.user_id ||
-      item.member_user_id ||
-      item.applicant_user_id ||
-      null,
-
-    username:
-      item.username ||
-      item.member_username ||
-      item.applicant_username ||
-      null,
-
-    phone:
-      item.phone ||
-      item.member_phone ||
-      item.applicant_phone ||
-      null,
-
-    role:
-      item.role ||
-      item.member_role ||
-      null,
-
-    status:
-      item.status ||
-      "active",
-
-    slotType:
-      item.slot_type ||
-      "member_top",
-
-    position:
-      Number(
-        item.position_no ||
-        item.display_order ||
-        0
-      ),
-
-    pending:
-      item.status === "pending" ||
-      Boolean(item.application_id),
-
-    applicationId:
-      item.application_id || null
-  };
-}
-
-function renderBoard() {
-  const container =
-    $("board-container");
-
-  if (!container) return;
-
-  if (!currentBoard.length) {
     container.innerHTML = `
-      <div class="empty-state">
-        <p>
-          Aucun membre n'est actuellement affiché.
-        </p>
+      <div class="victory-board">
+        ${nodes.join("")}
       </div>
     `;
 
-    return;
+    container
+      .querySelectorAll("[data-public-profile]")
+      .forEach((element) => {
+        element.addEventListener(
+          "click",
+          () =>
+            openPublicProfile(
+              element.dataset.publicProfile
+            )
+        );
+      });
   }
 
-  const members =
-    currentBoard.map(getBoardMember);
+  function renderBoardNode(member, position) {
+    if (!member) {
+      return `
+        <div
+          class="board-node empty"
+          data-position="${position}"
+        >
+          <span class="board-position">
+            ${position}
+          </span>
 
-  const legend =
-    members.find(
-      (member) =>
-        member.slotType === "legend" ||
-        member.role === "legend"
-    );
-
-  const topConstructor =
-    members.find(
-      (member) =>
-        member.slotType === "constructor_top"
-    );
-
-  const bottomConstructor =
-    members.find(
-      (member) =>
-        member.slotType === "constructor_bottom"
-    );
-
-  const topMembers =
-    members.filter(
-      (member) =>
-        member.slotType === "member_top"
-    );
-
-  const bottomMembers =
-    members.filter(
-      (member) =>
-        member.slotType === "member_bottom"
-    );
-
-  container.innerHTML = `
-    <div class="vg-board">
-
-      <div class="board-branch board-branch-top">
-
-        ${renderBoardNode(
-          topConstructor,
-          "constructor"
-        )}
-
-        <div class="board-members">
-          ${topMembers
-            .map(
-              (member) =>
-                renderBoardNode(
-                  member,
-                  "member"
-                )
-            )
-            .join("")}
+          <span class="board-node-label">
+            Libre
+          </span>
         </div>
+      `;
+    }
 
-      </div>
-
-      <div class="board-center">
-
-        ${renderBoardNode(
-          legend,
-          "legend"
-        )}
-
-      </div>
-
-      <div class="board-branch board-branch-bottom">
-
-        ${renderBoardNode(
-          bottomConstructor,
-          "constructor"
-        )}
-
-        <div class="board-members">
-          ${bottomMembers
-            .map(
-              (member) =>
-                renderBoardNode(
-                  member,
-                  "member"
-                )
-            )
-            .join("")}
-        </div>
-
-      </div>
-
-    </div>
-  `;
-
-  container
-    .querySelectorAll(
-      "[data-profile-id]"
-    )
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        () =>
-          openPublicProfile(
-            button.dataset.profileId
-          )
+    const username =
+      member.username ||
+      (
+        member.pending_application_id
+          ? "Demande en attente"
+          : "Membre"
       );
-    });
 
-  container
-    .querySelectorAll(
-      "[data-donation-id]"
-    )
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        () =>
-          openDonationConfirmation(
-            button.dataset.donationId,
-            button.dataset.username
-          )
-      );
-    });
-}
+    const role = member.member_role
+      ? normalizeRole(member.member_role)
+      : "Membre";
 
-function renderBoardNode(member, type) {
-  if (!member) {
+    const isPending =
+      !member.membership_id &&
+      Boolean(member.pending_application_id);
+
+    const statusClass =
+      isPending ? "pending" : "occupied";
+
+    const clickable =
+      member.user_id && !isPending;
+
     return `
-      <div class="board-node board-node-empty">
-        <span>Libre</span>
-      </div>
-    `;
-  }
-
-  const isPending =
-    member.pending ||
-    member.status === "pending";
-
-  const username =
-    member.username ||
-    "En attente";
-
-  const canDonate =
-    member.userId &&
-    !isPending &&
-    member.userId !== currentUser?.id;
-
-  const nodeClass =
-    isPending
-      ? "pending"
-      : type;
-
-  const safeUserId =
-    escapeHtml(member.userId || "");
-
-  return `
-    <div
-      class="board-node board-node-${nodeClass}">
-
-      <div class="board-node-inner">
-
-        <span class="board-node-type">
-          ${
-            isPending
-              ? "En attente"
-              : slotTypeLabel(
-                  member.slotType
-                )
-          }
+      <div
+        class="board-node ${statusClass}"
+        data-position="${position}"
+      >
+        <span class="board-position">
+          ${position}
         </span>
 
         ${
-          member.userId
+          clickable
             ? `
               <button
                 type="button"
                 class="board-username"
-                data-profile-id="${safeUserId}">
+                data-public-profile="${escapeHtml(
+                  member.user_id
+                )}"
+              >
                 ${escapeHtml(username)}
               </button>
             `
             : `
-              <span class="board-username">
+              <span class="board-node-label">
                 ${escapeHtml(username)}
               </span>
             `
         }
+
+        <span class="board-role">
+          ${escapeHtml(role)}
+        </span>
 
         ${
           isPending
             ? `
-              <span class="board-node-status">
-                Demande en attente
+              <span class="board-pending">
+                En attente
               </span>
-            `
-            : `
-              <span class="board-node-status">
-                ${statusLabel(member.status)}
-              </span>
-            `
-        }
-
-        ${
-          canDonate
-            ? `
-              <button
-                type="button"
-                class="donation-button"
-                data-donation-id="${safeUserId}"
-                data-username="${escapeHtml(username)}">
-                Donation virtuelle
-              </button>
             `
             : ""
         }
-
       </div>
+    `;
+  }
 
-    </div>
-  `;
-}
+  function renderEmptyBoard() {
+    const container =
+      $("#board") ||
+      $("#board-container") ||
+      $(".board-container") ||
+      $("[data-board]");
 
-async function openPublicProfile(userId) {
-  if (!userId) return;
+    if (!container) return;
 
-  try {
-    const {
-      data,
-      error
-    } = await supabaseClient.rpc(
-      "vg_get_public_profile",
-      {
-        p_user_id: userId
-      }
-    );
+    container.innerHTML = `
+      <div class="empty-state">
+        Vous n'avez pas encore de table active.
+      </div>
+    `;
+  }
 
-    if (error) {
-      throw error;
+  async function loadMyPendingApplication() {
+    pendingApplication = null;
+
+    const { data, error } = await supabase
+      .from("vg_applications")
+      .select(`
+        id,
+        target_plan_id,
+        target_division_id,
+        target_table_id,
+        target_position_no,
+        status,
+        expires_at,
+        created_at
+      `)
+      .eq("user_id", currentUser.id)
+      .eq("status", "pending")
+      .gt("expires_at", new Date().toISOString())
+      .order("created_at", {
+        ascending: false
+      })
+      .limit(1);
+
+    if (!error && Array.isArray(data) && data.length) {
+      pendingApplication = data[0];
     }
 
-    const profile =
-      firstRow(data);
+    renderMyPendingApplication();
+  }
 
-    if (!profile) {
-      window.VG_UI.notify(
-        "Ce profil n'est pas accessible.",
+  function renderMyPendingApplication() {
+    const container =
+      $("#pending-section") ||
+      $("[data-pending-section]");
+
+    if (!container) return;
+
+    if (!pendingApplication) {
+      container.hidden = true;
+      return;
+    }
+
+    container.hidden = false;
+
+    container.innerHTML = `
+      <div class="pending-card">
+        <strong>Demande en attente</strong>
+
+        <p>
+          Position demandée :
+          <strong>
+            ${Number(
+              pendingApplication.target_position_no || 0
+            )}
+          </strong>
+        </p>
+
+        <p>
+          Expiration :
+          ${date(pendingApplication.expires_at)}
+        </p>
+      </div>
+    `;
+  }
+
+  async function loadLegendApplications() {
+    legendApplications = [];
+
+    const role =
+      currentMembership?.member_role ||
+      currentProfile?.role;
+
+    if (role !== "legend") {
+      renderLegendApplications();
+      return;
+    }
+
+    const { data, error } = await supabase.rpc(
+      "vg_get_pending_for_legend"
+    );
+
+    if (!error && Array.isArray(data)) {
+      legendApplications = data;
+    }
+
+    renderLegendApplications();
+  }
+
+  function renderLegendApplications() {
+    const container =
+      $("#approval-section") ||
+      $("#pending-approvals") ||
+      $("[data-approval-section]");
+
+    if (!container) return;
+
+    const role =
+      currentMembership?.member_role ||
+      currentProfile?.role;
+
+    if (role !== "legend") {
+      container.hidden = true;
+      return;
+    }
+
+    container.hidden = false;
+
+    if (!legendApplications.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          Aucune demande en attente.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="approval-list">
+        ${legendApplications
+          .map(
+            (application) => `
+              <article
+                class="approval-card"
+                data-application-id="${escapeHtml(
+                  application.id
+                )}"
+              >
+                <div>
+                  <strong>
+                    Nouvelle demande
+                  </strong>
+
+                  <p>
+                    Position :
+                    ${Number(
+                      application.target_position_no || 0
+                    )}
+                  </p>
+
+                  <small>
+                    Expire le
+                    ${date(application.expires_at)}
+                  </small>
+                </div>
+
+                <button
+                  type="button"
+                  class="primary-button approve-application-button"
+                  data-application-id="${escapeHtml(
+                    application.id
+                  )}"
+                >
+                  Approuver
+                </button>
+              </article>
+            `
+          )
+          .join("")}
+      </div>
+    `;
+
+    container
+      .querySelectorAll(".approve-application-button")
+      .forEach((button) => {
+        button.addEventListener(
+          "click",
+          () =>
+            approveApplication(
+              button.dataset.applicationId,
+              button
+            )
+        );
+      });
+  }
+
+  async function recordSimulationProgress() {
+    if (!currentMembership?.membership_id) {
+      notify(
+        "Aucune adhésion active de Légende trouvée.",
         "error"
       );
       return;
     }
 
-    window.VG_UI.setText(
-      $("public-profile-title"),
-      profile.username || "Membre"
-    );
+    const button = $("#simulation-progress-button");
 
-    window.VG_UI.setText(
-      $("public-profile-phone"),
-      profile.phone || "Non renseigné"
-    );
-
-    window.VG_UI.setText(
-      $("public-profile-role"),
-      roleLabel(profile.role)
-    );
-
-    window.VG_UI.setText(
-      $("public-profile-letter"),
-      (profile.username || "V")
-        .charAt(0)
-        .toUpperCase()
-    );
-
-    openModal("profile-modal");
-  } catch (error) {
-    window.VG_UI.notify(
-      "Impossible d'afficher ce profil.",
-      "error"
-    );
-  }
-}
-
-function openModal(id) {
-  const modal = $(id);
-
-  if (!modal) return;
-
-  modal.hidden = false;
-  modal.setAttribute(
-    "aria-hidden",
-    "false"
-  );
-
-  document.body.classList.add(
-    "modal-open"
-  );
-}
-
-function closeModal(id) {
-  const modal = $(id);
-
-  if (!modal) return;
-
-  modal.hidden = true;
-  modal.setAttribute(
-    "aria-hidden",
-    "true"
-  );
-
-  document.body.classList.remove(
-    "modal-open"
-  );
-}
-
-function setupModals() {
-  $("profile-modal-close")?.addEventListener(
-    "click",
-    () => closeModal("profile-modal")
-  );
-
-  $("confirm-modal-close")?.addEventListener(
-    "click",
-    () => closeModal("confirm-modal")
-  );
-
-  document
-    .querySelectorAll("[data-close-modal]")
-    .forEach((element) => {
-      element.addEventListener(
-        "click",
-        () => closeModal("profile-modal")
-      );
-    });
-
-  document
-    .querySelectorAll("[data-close-confirm]")
-    .forEach((element) => {
-      element.addEventListener(
-        "click",
-        () => closeModal("confirm-modal")
-      );
-    });
-
-  $("confirm-cancel")?.addEventListener(
-    "click",
-    () => {
-      closeModal("confirm-modal");
-      confirmCallback = null;
-    }
-  );
-
-  $("confirm-action")?.addEventListener(
-    "click",
-    async () => {
-      if (!confirmCallback) return;
-
-      const callback =
-        confirmCallback;
-
-      confirmCallback = null;
-
-      closeModal("confirm-modal");
-
-      await callback();
-    }
-  );
-}
-
-function openDonationConfirmation(
-  recipientUserId,
-  username
-) {
-  const message =
-    `Effectuer une donation virtuelle à ${username} ?`;
-
-  window.VG_UI.setText(
-    $("confirm-message"),
-    message
-  );
-
-  confirmCallback =
-    () =>
-      recordVirtualDonation(
-        recipientUserId
-      );
-
-  openModal("confirm-modal");
-}
-
-async function recordVirtualDonation(
-  recipientUserId
-) {
-  if (!recipientUserId) return;
-
-  const button =
-    $("confirm-action");
-
-  window.VG_UI.loading(
-    button,
-    true
-  );
-
-  try {
-    const {
-      data,
-      error
-    } = await supabaseClient.rpc(
-      "vg_record_virtual_donation",
-      {
-        p_recipient_membership_id:
-          recipientUserId
-      }
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    window.VG_UI.notify(
-      "Donation virtuelle enregistrée.",
-      "success"
-    );
-
-    await refreshDashboard();
-  } catch (error) {
-    window.VG_UI.notify(
-      translateRpcError(error),
-      "error"
-    );
-  } finally {
-    window.VG_UI.loading(
-      button,
-      false
-    );
-  }
-}
-
-function translateRpcError(error) {
-  const message =
-    String(
-      error?.message || ""
-    ).toLowerCase();
-
-  if (
-    message.includes("self") ||
-    message.includes("same user")
-  ) {
-    return "Vous ne pouvez pas effectuer une donation à vous-même.";
-  }
-
-  if (
-    message.includes("not active") ||
-    message.includes("active membership")
-  ) {
-    return "Ce membre n'est pas actif dans votre tableau.";
-  }
-
-  if (
-    message.includes("same plan")
-  ) {
-    return "La donation doit rester dans votre plan actuel.";
-  }
-
-  if (
-    message.includes("permission") ||
-    message.includes("not allowed")
-  ) {
-    return "Cette action n'est pas autorisée.";
-  }
-
-  if (
-    message.includes("pending")
-  ) {
-    return "Cette demande est encore en attente.";
-  }
-
-  return (
-    error?.message ||
-    "L'action n'a pas pu être effectuée."
-  );
-}
-
-async function applyToFirstPlan() {
-  const button =
-    $("first-plan-button");
-
-  if (button) {
-    window.VG_UI.loading(
-      button,
-      true
-    );
-  }
-
-  try {
-    const {
-      data,
-      error
-    } = await supabaseClient.rpc(
-      "vg_apply_to_first_plan"
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    window.VG_UI.notify(
-      "Votre demande pour le premier plan a été envoyée.",
-      "success"
-    );
-
-    await refreshDashboard();
-  } catch (error) {
-    window.VG_UI.notify(
-      translateRpcError(error),
-      "error"
-    );
-  } finally {
     if (button) {
-      window.VG_UI.loading(
-        button,
-        false
+      button.disabled = true;
+      button.textContent = "Enregistrement...";
+    }
+
+    try {
+      const { data, error } = await supabase.rpc(
+        "vg_record_simulation_progress",
+        {
+          p_legend_membership_id:
+            currentMembership.membership_id
+        }
       );
-    }
-  }
-}
 
-async function applyToNextPlan() {
-  const button =
-    $("apply-next-plan-button");
+      if (error) throw error;
 
-  window.VG_UI.loading(
-    button,
-    true
-  );
+      const result = getFirstRow(data) || data;
 
-  try {
-    const {
-      data,
-      error
-    } = await supabaseClient.rpc(
-      "vg_apply_to_next_plan"
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    pendingApplication =
-      firstRow(data);
-
-    window.VG_UI.notify(
-      "Votre demande pour le prochain plan a été envoyée.",
-      "success"
-    );
-
-    await refreshDashboard();
-  } catch (error) {
-    window.VG_UI.notify(
-      translateRpcError(error),
-      "error"
-    );
-  } finally {
-    window.VG_UI.loading(
-      button,
-      false
-    );
-  }
-}
-
-function setupActions() {
-  $("logout-button")?.addEventListener(
-    "click",
-    logout
-  );
-
-  $("refresh-button")?.addEventListener(
-    "click",
-    refreshDashboard
-  );
-
-  $("board-refresh-button")?.addEventListener(
-    "click",
-    refreshDashboard
-  );
-
-  $("apply-next-plan-button")?.addEventListener(
-    "click",
-    applyToNextPlan
-  );
-}
-
-async function logout() {
-  try {
-    const {
-      error
-    } = await supabaseClient.auth.signOut();
-
-    if (error) {
-      throw error;
-    }
-
-    window.location.replace(
-      "index.html"
-    );
-  } catch (error) {
-    window.VG_UI.notify(
-      "Impossible de vous déconnecter.",
-      "error"
-    );
-  }
-}
-
-async function refreshDashboard() {
-  try {
-    showLoading();
-
-    const session =
-      await getSession();
-
-    if (!session?.user) {
-      window.location.replace(
-        "index.html"
-      );
-      return;
-    }
-
-    currentUser =
-      session.user;
-
-    await loadProfile();
-    await loadPlans();
-    await loadCurrentBoard();
-
-    showApp();
-  } catch (error) {
-    console.error(error);
-
-    showDashboardError(
-      "Impossible de charger votre espace. Veuillez réessayer."
-    );
-  }
-}
-
-function setupAuthListener() {
-  supabaseClient.auth.onAuthStateChange(
-    (event, session) => {
-      if (
-        event === "SIGNED_OUT" ||
-        !session
-      ) {
-        window.location.replace(
-          "index.html"
+      if (result?.completed) {
+        notify(
+          "La progression requise est terminée.",
+          "success"
+        );
+      } else {
+        notify(
+          "Progression de simulation enregistrée.",
+          "success"
         );
       }
+
+      await refreshDashboard();
+    } catch (error) {
+      notify(
+        getErrorMessage(error),
+        "error"
+      );
+
+      if (button) {
+        button.disabled = false;
+        button.textContent =
+          "Enregistrer une progression";
+      }
     }
-  );
-}
+  }
 
-async function init() {
-  setupModals();
-  setupActions();
-  setupAuthListener();
+  async function approveApplication(
+    applicationId,
+    button
+  ) {
+    if (!applicationId) return;
 
-  try {
-    const session =
-      await getSession();
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Approbation...";
+    }
 
-    if (!session?.user) {
-      window.location.replace(
-        "index.html"
+    try {
+      const { error } = await supabase.rpc(
+        "vg_approve_application",
+        {
+          p_application_id: applicationId
+        }
+      );
+
+      if (error) throw error;
+
+      notify(
+        "Demande approuvée. La progression de simulation a été enregistrée.",
+        "success"
+      );
+
+      await refreshDashboard();
+    } catch (error) {
+      notify(
+        getErrorMessage(error),
+        "error"
+      );
+
+      if (button) {
+        button.disabled = false;
+        button.textContent = "Approuver";
+      }
+    }
+  }
+
+  async function applyToFirstPlan() {
+    const button =
+      $("#apply-first-plan-button") ||
+      $("[data-apply-first-plan]");
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Traitement...";
+    }
+
+    try {
+      const { error } = await supabase.rpc(
+        "vg_apply_to_first_plan"
+      );
+
+      if (error) throw error;
+
+      notify(
+        "Votre demande pour le premier niveau a été créée.",
+        "success"
+      );
+
+      await refreshDashboard();
+    } catch (error) {
+      notify(
+        getErrorMessage(error),
+        "error"
+      );
+
+      if (button) {
+        button.disabled = false;
+        button.textContent = "Commencer";
+      }
+    }
+  }
+
+  async function applyToNextPlan() {
+    const button = $("#apply-next-plan-button");
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Traitement...";
+    }
+
+    try {
+      const { error } = await supabase.rpc(
+        "vg_apply_to_next_plan"
+      );
+
+      if (error) throw error;
+
+      notify(
+        "Votre demande pour le niveau suivant a été créée.",
+        "success"
+      );
+
+      await refreshDashboard();
+    } catch (error) {
+      notify(
+        getErrorMessage(error),
+        "error"
+      );
+
+      if (button) {
+        button.disabled = false;
+        button.textContent = "Demander l'accès";
+      }
+    }
+  }
+
+  async function openPublicProfile(userId) {
+    if (!userId) return;
+
+    try {
+      const { data, error } = await supabase.rpc(
+        "vg_get_public_profile",
+        {
+          p_user_id: userId
+        }
+      );
+
+      if (error) throw error;
+
+      const profile = getFirstRow(data);
+
+      if (!profile) {
+        notify(
+          "Profil public indisponible.",
+          "error"
+        );
+        return;
+      }
+
+      const modal =
+        $("#public-profile-modal") ||
+        $(".public-profile-modal");
+
+      if (modal) {
+        const username =
+          modal.querySelector(
+            "[data-public-username]"
+          );
+
+        const phone =
+          modal.querySelector(
+            "[data-public-phone]"
+          );
+
+        const role =
+          modal.querySelector(
+            "[data-public-role]"
+          );
+
+        if (username) {
+          username.textContent =
+            profile.username || "—";
+        }
+
+        if (phone) {
+          phone.textContent =
+            profile.phone || "—";
+        }
+
+        if (role) {
+          role.textContent =
+            normalizeRole(profile.role);
+        }
+
+        modal.hidden = false;
+        modal.classList.add("open");
+        return;
+      }
+
+      if (window.VG_UI?.openModal) {
+        window.VG_UI.openModal(`
+          <div class="public-profile">
+            <h3>${escapeHtml(
+              profile.username || "Profil"
+            )}</h3>
+
+            <p>
+              <strong>Rôle :</strong>
+              ${escapeHtml(
+                normalizeRole(profile.role)
+              )}
+            </p>
+
+            <p>
+              <strong>Téléphone :</strong>
+              ${escapeHtml(
+                profile.phone || "—"
+              )}
+            </p>
+          </div>
+        `);
+      }
+    } catch (error) {
+      notify(
+        getErrorMessage(error),
+        "error"
+      );
+    }
+  }
+
+  function closePublicProfile() {
+    const modal =
+      $("#public-profile-modal") ||
+      $(".public-profile-modal");
+
+    if (!modal) return;
+
+    modal.hidden = true;
+    modal.classList.remove("open");
+  }
+
+  async function loadReferralLink() {
+    const { data, error } = await supabase.rpc(
+      "vg_get_my_referral_link"
+    );
+
+    if (error) return;
+
+    const referral = getFirstRow(data);
+
+    if (!referral) return;
+
+    const url =
+      referral.referral_url ||
+      "";
+
+    const code =
+      referral.referral_code ||
+      "";
+
+    document
+      .querySelectorAll(
+        "[data-referral-link]"
+      )
+      .forEach((element) => {
+        if (
+          element.tagName === "INPUT" ||
+          element.tagName === "TEXTAREA"
+        ) {
+          element.value = url;
+        } else {
+          element.textContent = url;
+        }
+      });
+
+    document
+      .querySelectorAll(
+        "[data-referral-code]"
+      )
+      .forEach((element) => {
+        element.textContent = code;
+      });
+
+    const copyButtons = document.querySelectorAll(
+      "[data-copy-referral]"
+    );
+
+    copyButtons.forEach((button) => {
+      button.onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(url);
+
+          notify(
+            "Lien de parrainage copié.",
+            "success"
+          );
+        } catch {
+          notify(
+            "Impossible de copier automatiquement le lien.",
+            "error"
+          );
+        }
+      };
+    });
+  }
+
+  async function processReferralCode() {
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const referralCode =
+      params.get("ref");
+
+    if (!referralCode) return;
+
+    try {
+      const { error } = await supabase.rpc(
+        "vg_set_referrer_by_code",
+        {
+          p_referral_code:
+            referralCode.trim()
+        }
+      );
+
+      if (error) {
+        const message =
+          String(error.message || "").toLowerCase();
+
+        if (
+          !message.includes("already") &&
+          !message.includes("self")
+        ) {
+          notify(
+            getErrorMessage(error),
+            "error"
+          );
+        }
+
+        return;
+      }
+
+      notify(
+        "Code de parrainage enregistré.",
+        "success"
+      );
+
+      const cleanUrl =
+        `${window.location.origin}${window.location.pathname}`;
+
+      window.history.replaceState(
+        {},
+        document.title,
+        cleanUrl
+      );
+    } catch {
+      // Le code de parrainage ne doit pas empêcher
+      // le chargement du tableau de bord.
+    }
+  }
+
+  function hideLegacyDonationInterface() {
+    document
+      .querySelectorAll(
+        ".donation-section, [data-donation-section]"
+      )
+      .forEach((element) => {
+        element.hidden = true;
+      });
+
+    document
+      .querySelectorAll(
+        "[data-donation-button], .donation-button"
+      )
+      .forEach((element) => {
+        element.remove();
+      });
+  }
+
+  function setupFirstPlanButton() {
+    const button =
+      $("#apply-first-plan-button") ||
+      $("[data-apply-first-plan]");
+
+    if (!button) return;
+
+    button.addEventListener(
+      "click",
+      applyToFirstPlan
+    );
+  }
+
+  function setupPublicProfileModal() {
+    document
+      .querySelectorAll(
+        "[data-close-public-profile]"
+      )
+      .forEach((element) => {
+        element.addEventListener(
+          "click",
+          closePublicProfile
+        );
+      });
+
+    const modal =
+      $("#public-profile-modal") ||
+      $(".public-profile-modal");
+
+    if (modal) {
+      modal.addEventListener(
+        "click",
+        (event) => {
+          if (
+            event.target === modal ||
+            event.target.classList.contains(
+              "modal-backdrop"
+            )
+          ) {
+            closePublicProfile();
+          }
+        }
+      );
+    }
+  }
+
+  function setupLogout() {
+    document
+      .querySelectorAll(
+        "#logout-button, [data-logout]"
+      )
+      .forEach((button) => {
+        button.addEventListener(
+          "click",
+          logout
+        );
+      });
+  }
+
+  async function logout() {
+    const { error } =
+      await supabase.auth.signOut();
+
+    if (error) {
+      notify(
+        getErrorMessage(error),
+        "error"
       );
       return;
     }
 
-    currentUser =
-      session.user;
-
-    await loadProfile();
-    await loadPlans();
-    await loadCurrentBoard();
-
-    showApp();
-  } catch (error) {
-    console.error(error);
-
-    showDashboardError(
-      "Impossible de charger votre espace."
-    );
+    window.location.href =
+      "index.html";
   }
-}
 
-document.addEventListener(
-  "DOMContentLoaded",
-  init
-);
+  async function refreshDashboard() {
+    showLoading("Actualisation...");
+
+    try {
+      await loadProfile();
+      await loadPlans();
+      await loadCurrentBoard();
+      await loadMyPendingApplication();
+      await loadLegendApplications();
+      await loadReferralLink();
+
+      renderPlans();
+      setupFirstPlanButton();
+    } catch (error) {
+      notify(
+        getErrorMessage(error),
+        "error"
+      );
+    } finally {
+      hideLoading();
+    }
+  }
+
+  async function init() {
+    if (!supabase) {
+      console.error(
+        "Supabase client introuvable."
+      );
+      return;
+    }
+
+    showLoading("Chargement du tableau de bord...");
+
+    try {
+      const {
+        data: {
+          session
+        }
+      } = await supabase.auth.getSession();
+
+      if (!session?.user) {
+        window.location.href =
+          "index.html";
+        return;
+      }
+
+      currentUser = session.user;
+
+      await processReferralCode();
+      await loadProfile();
+      await loadPlans();
+      await loadCurrentBoard();
+      await loadMyPendingApplication();
+      await loadLegendApplications();
+      await loadReferralLink();
+
+      renderPlans();
+
+      setupFirstPlanButton();
+      setupPublicProfileModal();
+      setupLogout();
+
+      hideLegacyDonationInterface();
+    } catch (error) {
+      console.error(error);
+
+      notify(
+        getErrorMessage(error),
+        "error"
+      );
+    } finally {
+      hideLoading();
+    }
+  }
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    init
+  );
+
+  window.VG_APP = {
+    refresh: refreshDashboard,
+    logout,
+    openPublicProfile,
+    closePublicProfile,
+    applyToFirstPlan,
+    applyToNextPlan,
+    recordSimulationProgress
+  };
+})();
