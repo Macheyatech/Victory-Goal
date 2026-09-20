@@ -2,44 +2,30 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0">
-
-  <meta
-    name="theme-color"
-    content="#050812">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#050812">
   <meta
     name="description"
-    content="Victory Goal — Votre progression. Votre parcours.">
+    content="Victory Goal — Votre progression. Votre parcours."
+  >
 
-  <link
-    rel="icon"
-    type="image/png"
-    href="victory-goal-logo.png">
-
-  <link
-    rel="stylesheet"
-    href="css/dashboard.css">
+  <link rel="icon" type="image/png" href="victory-goal-logo.png">
+  <link rel="stylesheet" href="css/dashboard.css">
 
   <title>Victory Goal | Tableau de bord</title>
 </head>
 
 <body>
 
-  <!-- CHARGEMENT -->
-  <div
-    id="dashboard-loading"
-    class="app-loading">
-
+  <!-- ÉCRAN DE CHARGEMENT -->
+  <div id="dashboard-loading" class="app-loading">
     <div class="app-loading-inner">
 
       <img
         src="victory-goal-logo.png"
         alt="Victory Goal"
-        class="app-loading-logo">
+        class="app-loading-logo"
+      >
 
       <div class="app-spinner"></div>
 
@@ -48,33 +34,27 @@
       </p>
 
     </div>
-
   </div>
 
 
   <!-- APPLICATION -->
-  <div
-    id="app"
-    class="dashboard-page"
-    hidden>
+  <div id="app" class="dashboard-page" hidden>
 
     <!-- HEADER -->
     <header class="dashboard-header">
-
       <div class="dashboard-header-inner">
 
         <a
           href="dashboard.html"
           class="dashboard-brand"
-          aria-label="Victory Goal">
-
+          aria-label="Victory Goal"
+        >
           <img
             src="victory-goal-logo.png"
             alt="Victory Goal"
-            class="dashboard-logo">
-
+            class="dashboard-logo"
+          >
         </a>
-
 
         <div class="dashboard-header-actions">
 
@@ -82,38 +62,34 @@
             type="button"
             id="refresh-button"
             class="icon-button"
-            aria-label="Actualiser">
-
+            aria-label="Actualiser"
+            title="Actualiser"
+          >
             ↻
-
           </button>
-
 
           <button
             type="button"
             id="logout-button"
-            class="logout-button">
-
+            class="logout-button"
+          >
             Déconnexion
-
           </button>
 
         </div>
 
       </div>
-
     </header>
 
 
-    <!-- CONTENU PRINCIPAL -->
+    <!-- CONTENU -->
     <main class="dashboard-main">
 
-
-      <!-- BIENVENUE -->
+      <!-- HERO -->
       <section
         class="welcome-section"
-        aria-labelledby="welcome-title">
-
+        aria-labelledby="welcome-title"
+      >
         <p class="section-kicker">
           VICTORY GOAL
         </p>
@@ -122,26 +98,21 @@
           Bienvenue
         </h1>
 
-        <p
-          id="welcome-subtitle"
-          class="welcome-subtitle">
-
+        <p id="welcome-subtitle" class="welcome-subtitle">
           Votre progression. Votre parcours.
-
         </p>
-
       </section>
 
 
       <!-- PROFIL -->
       <section
         class="profile-card dashboard-card"
-        aria-labelledby="profile-title">
+        aria-labelledby="profile-title"
+      >
 
         <div class="card-header">
 
           <div>
-
             <p class="card-kicker">
               MON PROFIL
             </p>
@@ -149,31 +120,21 @@
             <h2 id="profile-title">
               Mon compte
             </h2>
-
           </div>
 
-
-          <span
-            id="profile-role"
-            class="status-badge">
-
+          <span id="profile-role" class="status-badge">
             Membre
-
           </span>
 
         </div>
 
-
         <div class="profile-content">
 
           <div class="profile-avatar">
-
             <span id="profile-avatar-letter">
               V
             </span>
-
           </div>
-
 
           <div class="profile-details">
 
@@ -196,15 +157,15 @@
       </section>
 
 
-      <!-- PROGRESSION -->
+      <!-- NIVEAU / PROGRESSION -->
       <section
         class="progress-card dashboard-card"
-        aria-labelledby="progress-title">
+        aria-labelledby="progress-title"
+      >
 
         <div class="card-header">
 
           <div>
-
             <p class="card-kicker">
               MA PROGRESSION
             </p>
@@ -212,41 +173,27 @@
             <h2 id="progress-title">
               Niveau actuel
             </h2>
-
           </div>
 
         </div>
 
 
-        <div
-          id="current-plan-card"
-          class="current-plan-card">
+        <div id="current-plan-card" class="current-plan-card">
 
           <div class="plan-main">
 
             <div>
-
               <span class="plan-label">
-                Plan actuel
+                Niveau actuel
               </span>
 
-              <strong
-                id="current-plan-name"
-                class="plan-amount">
-
+              <strong id="current-plan-name" class="plan-amount">
                 —
-
               </strong>
-
             </div>
 
-
-            <strong
-              id="current-plan-points"
-              class="plan-points-value">
-
+            <strong id="current-plan-points" class="plan-points-value">
               V$0
-
             </strong>
 
           </div>
@@ -255,7 +202,6 @@
           <div class="plan-progress">
 
             <div class="progress-info">
-
               <span>
                 Progression
               </span>
@@ -263,20 +209,16 @@
               <strong id="progress-value">
                 0 / 0
               </strong>
-
             </div>
 
 
             <div class="progress-track">
-
               <div
                 id="donation-progress"
                 class="progress-bar progress-fill"
                 data-progress-fill
-                style="width: 0%">
-
-              </div>
-
+                style="width: 0%"
+              ></div>
             </div>
 
 
@@ -310,40 +252,35 @@
         id="simulation-progress-area"
         class="simulation-progress-area dashboard-card"
         data-simulation-progress
-        hidden>
-      </section>
+        hidden
+      ></section>
 
 
-      <!-- PLANS -->
+      <!-- PARCOURS DES NIVEAUX -->
       <section
         class="plans-section dashboard-card"
-        aria-labelledby="plans-title">
+        aria-labelledby="plans-title"
+      >
 
         <div class="card-header">
 
           <div>
-
             <p class="card-kicker">
               PARCOURS
             </p>
 
             <h2 id="plans-title">
-              Plans disponibles
+              Mes niveaux
             </h2>
-
           </div>
 
         </div>
 
 
-        <div
-          id="plans-list"
-          class="plans-list">
+        <div id="plans-list" class="plans-list">
 
           <div class="empty-state">
-
-            Chargement des plans...
-
+            Chargement des niveaux...
           </div>
 
         </div>
@@ -354,12 +291,12 @@
       <!-- TABLEAU -->
       <section
         class="board-section dashboard-card"
-        aria-labelledby="board-title">
+        aria-labelledby="board-title"
+      >
 
         <div class="card-header board-header">
 
           <div>
-
             <p class="card-kicker">
               TABLEAU
             </p>
@@ -367,25 +304,20 @@
             <h2 id="board-title">
               Ma division
             </h2>
-
           </div>
-
 
           <button
             type="button"
             id="board-refresh-button"
-            class="secondary-button">
-
+            class="secondary-button"
+          >
             Actualiser
-
           </button>
 
         </div>
 
 
-        <div
-          id="board-plan-info"
-          class="board-plan-info">
+        <div id="board-plan-info" class="board-plan-info">
 
           <span id="board-plan-name">
             —
@@ -398,9 +330,7 @@
         </div>
 
 
-        <div
-          id="board-container"
-          class="board-container">
+        <div id="board-container" class="board-container">
 
           <div class="board-loading">
 
@@ -415,29 +345,45 @@
         </div>
 
 
-        <p
-          id="board-note"
-          class="board-note">
+        <div class="board-legend">
 
+          <div class="board-legend-item">
+            <span class="legend-dot legend-occupied"></span>
+            <span>Position occupée</span>
+          </div>
+
+          <div class="board-legend-item">
+            <span class="legend-dot legend-empty"></span>
+            <span>Position libre</span>
+          </div>
+
+          <div class="board-legend-item">
+            <span class="legend-dot legend-pending"></span>
+            <span>En attente</span>
+          </div>
+
+        </div>
+
+
+        <p id="board-note" class="board-note">
           Cliquez sur un nom pour consulter les informations
           publiques disponibles.
-
         </p>
 
       </section>
 
 
-      <!-- PROCHAIN PLAN -->
+      <!-- PROCHAIN NIVEAU -->
       <section
         id="next-plan-section"
         class="next-plan-section dashboard-card"
         aria-labelledby="next-plan-title"
-        hidden>
+        hidden
+      >
 
         <div class="card-header">
 
           <div>
-
             <p class="card-kicker">
               PROCHAINE ÉTAPE
             </p>
@@ -445,7 +391,6 @@
             <h2 id="next-plan-title">
               Continuer mon parcours
             </h2>
-
           </div>
 
         </div>
@@ -454,11 +399,12 @@
         <div
           id="next-plan-area"
           class="next-plan-area"
-          data-next-plan>
+          data-next-plan
+        >
 
           <p id="next-plan-description">
-            Votre prochaine étape sera disponible lorsque les conditions
-            de votre niveau actuel seront remplies.
+            Votre prochaine étape sera disponible lorsque
+            les conditions de votre niveau actuel seront remplies.
           </p>
 
         </div>
@@ -466,17 +412,17 @@
       </section>
 
 
-      <!-- DEMANDE EN ATTENTE -->
+      <!-- DEMANDE PERSONNELLE -->
       <section
         id="pending-section"
         class="pending-section dashboard-card"
         data-pending-section
-        hidden>
+        hidden
+      >
 
         <div class="card-header">
 
           <div>
-
             <p class="card-kicker">
               EN ATTENTE
             </p>
@@ -484,40 +430,31 @@
             <h2>
               Ma demande
             </h2>
-
           </div>
 
-
-          <span
-            class="status-badge pending">
-
+          <span class="status-badge pending">
             En attente
-
           </span>
 
         </div>
 
 
-        <div
-          id="pending-content"
-          class="pending-content">
-
-        </div>
+        <div id="pending-content" class="pending-content"></div>
 
       </section>
 
 
-      <!-- VALIDATIONS -->
+      <!-- DEMANDES À APPROUVER -->
       <section
         id="approval-section"
         class="approval-section dashboard-card"
         data-approval-section
-        hidden>
+        hidden
+      >
 
         <div class="card-header">
 
           <div>
-
             <p class="card-kicker">
               VALIDATION
             </p>
@@ -525,37 +462,32 @@
             <h2>
               Demandes à valider
             </h2>
-
           </div>
 
         </div>
 
 
-        <div
-          id="approval-list"
-          class="approval-list">
-
-        </div>
+        <div id="approval-list" class="approval-list"></div>
 
       </section>
 
 
       <!-- PARRAINAGE -->
       <section
-        class="referral-section dashboard-card">
+        class="referral-section dashboard-card"
+        aria-labelledby="referral-title"
+      >
 
         <div class="card-header">
 
           <div>
-
             <p class="card-kicker">
               INVITATION
             </p>
 
-            <h2>
+            <h2 id="referral-title">
               Mon lien de parrainage
             </h2>
-
           </div>
 
         </div>
@@ -564,8 +496,8 @@
         <div class="referral-content">
 
           <p>
-            Partagez votre lien pour inviter une nouvelle personne
-            à rejoindre Victory Goal.
+            Partagez votre code pour inviter une personne
+            à découvrir Victory Goal.
           </p>
 
 
@@ -589,16 +521,15 @@
               data-referral-link
               readonly
               value=""
-              aria-label="Lien de parrainage">
-
+              aria-label="Lien de parrainage"
+            >
 
             <button
               type="button"
               class="secondary-button"
-              data-copy-referral>
-
+              data-copy-referral
+            >
               Copier
-
             </button>
 
           </div>
@@ -608,23 +539,22 @@
       </section>
 
 
-      <!-- INFORMATION -->
+      <!-- INFORMATIONS -->
       <section
         class="information-section dashboard-card"
-        aria-labelledby="information-title">
+        aria-labelledby="information-title"
+      >
 
         <div class="card-header">
 
           <div>
-
             <p class="card-kicker">
-              INFORMATION
+              VICTORY GOAL
             </p>
 
             <h2 id="information-title">
               Comment fonctionne votre parcours ?
             </h2>
-
           </div>
 
         </div>
@@ -640,16 +570,14 @@
             </span>
 
             <div>
-
               <h3>
                 Votre tableau
               </h3>
 
               <p>
-                Votre position et les membres visibles dans
-                votre division sont affichés dans le tableau.
+                Votre position et les membres de votre
+                division sont affichés dans votre tableau.
               </p>
-
             </div>
 
           </article>
@@ -662,16 +590,14 @@
             </span>
 
             <div>
-
               <h3>
                 Votre progression
               </h3>
 
               <p>
-                Votre progression dépend des règles du niveau
-                auquel vous appartenez.
+                La progression est calculée selon les règles
+                du niveau et des positions de progression.
               </p>
-
             </div>
 
           </article>
@@ -684,16 +610,14 @@
             </span>
 
             <div>
-
               <h3>
-                Votre prochain niveau
+                Les validations
               </h3>
 
               <p>
-                Les niveaux se suivent dans l'ordre prévu.
-                Aucun niveau supérieur ne peut être sauté.
+                Lorsqu'une demande est en attente, elle est
+                examinée par la Légende responsable de la division.
               </p>
-
             </div>
 
           </article>
@@ -706,18 +630,36 @@
             </span>
 
             <div>
+              <h3>
+                Votre parcours
+              </h3>
 
+              <p>
+                Les niveaux et les divisions suivent une
+                progression structurée. Votre historique est
+                conservé au fil de votre parcours.
+              </p>
+            </div>
+
+          </article>
+
+
+          <article class="information-item">
+
+            <span class="information-number">
+              5
+            </span>
+
+            <div>
               <h3>
                 Simulation virtuelle
               </h3>
 
               <p>
-                Victory Goal fonctionne comme une simulation
-                virtuelle utilisant des points de jeu V$.
-                Aucun dépôt, retrait ou recharge réelle
-                n'est effectué sur la plateforme.
+                Victory Goal utilise uniquement des points
+                de simulation V$. Ils ne représentent pas
+                un dépôt, un retrait ou une valeur monétaire réelle.
               </p>
-
             </div>
 
           </article>
@@ -736,7 +678,8 @@
       <img
         src="victory-goal-logo.png"
         alt="Victory Goal"
-        class="footer-logo">
+        class="footer-logo"
+      >
 
       <p>
         Victory Goal
@@ -751,45 +694,43 @@
   </div>
 
 
-  <!-- PROFIL PUBLIC -->
+  <!-- MODAL PROFIL PUBLIC -->
   <div
     id="public-profile-modal"
     class="vg-modal public-profile-modal"
     hidden
-    aria-hidden="true">
+    aria-hidden="true"
+  >
 
     <div
       class="vg-modal-backdrop"
-      data-close-public-profile>
-    </div>
+      data-close-public-profile
+    ></div>
 
 
     <div
       class="vg-modal-content"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="public-profile-title">
-
+      aria-labelledby="public-profile-title"
+    >
 
       <button
         type="button"
         class="vg-modal-close"
         data-close-public-profile
-        aria-label="Fermer">
-
+        aria-label="Fermer"
+      >
         ×
-
       </button>
 
 
       <div class="public-profile">
 
         <div class="profile-avatar large">
-
           <span>
             V
           </span>
-
         </div>
 
 
@@ -798,7 +739,7 @@
         </p>
 
 
-        <h2 data-public-username>
+        <h2 id="public-profile-title" data-public-username>
           —
         </h2>
 
@@ -818,10 +759,9 @@
 
         <p
           class="public-profile-role"
-          data-public-role>
-
+          data-public-role
+        >
           —
-
         </p>
 
       </div>
@@ -831,24 +771,19 @@
   </div>
 
 
-  <!-- TOAST -->
+  <!-- NOTIFICATIONS -->
   <div
     id="vg-toast-container"
     class="vg-toast-container"
     aria-live="polite"
-    aria-atomic="true">
-  </div>
+    aria-atomic="true"
+  ></div>
 
 
   <!-- SCRIPTS -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-  </script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js"></script>
-
   <script src="js/ui.js"></script>
-
   <script src="js/app.js"></script>
 
 </body>
