@@ -5,8 +5,8 @@
 
   let currentUser = null;
   let currentProfile = null;
-  let visiblePlans = [];
 
+  let visiblePlans = [];
   let currentPlan = null;
   let currentBoard = [];
   let currentMembership = null;
@@ -18,8 +18,10 @@
   let legendApplications = [];
 
   let countdownTimer = null;
+  let boardExpanded = false;
 
-  const $ = (selector) => document.querySelector(selector);
+  const $ = (selector) =>
+    document.querySelector(selector);
 
   /* =========================================================
      UTILITAIRES
@@ -53,7 +55,9 @@
 
     return `V$${new Intl.NumberFormat("fr-FR", {
       maximumFractionDigits: 2
-    }).format(Number.isFinite(number) ? number : 0)}`;
+    }).format(
+      Number.isFinite(number) ? number : 0
+    )}`;
   }
 
   function formatDate(value) {
@@ -90,9 +94,14 @@
       return "Expirée";
     }
 
-    const totalSeconds = Math.floor(remaining / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
+    const totalSeconds =
+      Math.floor(remaining / 1000);
+
+    const minutes =
+      Math.floor(totalSeconds / 60);
+
+    const seconds =
+      totalSeconds % 60;
 
     return `${minutes} min ${String(seconds).padStart(2, "0")} s`;
   }
@@ -114,36 +123,27 @@
     }
   }
 
-  function setHTML(selector, value) {
-    const element = $(selector);
+  function showLoading(message) {
+    const loading = $("#dashboard-loading");
 
-    if (element) {
-      element.innerHTML = value ?? "";
-    }
-  }
+    if (!loading) return;
 
-  function showLoading(message = "Chargement...") {
-    const element = $("#dashboard-loading");
-
-    if (!element) return;
-
-    element.hidden = false;
+    loading.hidden = false;
 
     const text =
       $("#dashboard-loading-text");
 
     if (text) {
       text.textContent = message;
-    } else {
-      element.textContent = message;
     }
   }
 
   function hideLoading() {
-    const element = $("#dashboard-loading");
+    const loading =
+      $("#dashboard-loading");
 
-    if (element) {
-      element.hidden = true;
+    if (loading) {
+      loading.hidden = true;
     }
   }
 
@@ -183,7 +183,8 @@
       "Une erreur est survenue."
     );
 
-    const message = raw.toLowerCase();
+    const message =
+      raw.toLowerCase();
 
     const translations = [
       [
@@ -223,14 +224,6 @@
         "Vous ne pouvez pas approuver votre propre demande."
       ],
       [
-        "referral code not found",
-        "Le code de parrainage est introuvable."
-      ],
-      [
-        "self referral",
-        "Vous ne pouvez pas utiliser votre propre code de parrainage."
-      ],
-      [
         "first plan table is full",
         "Le premier tableau est complet."
       ],
@@ -266,8 +259,12 @@
   ========================================================= */
 
   async function loadProfile() {
-    const { data, error } =
-      await supabase.rpc("vg_get_my_profile");
+    const {
+      data,
+      error
+    } = await supabase.rpc(
+      "vg_get_my_profile"
+    );
 
     if (error) {
       throw error;
@@ -276,14 +273,18 @@
     currentProfile = firstRow(data);
 
     if (!currentProfile) {
-      throw new Error("PROFILE_NOT_FOUND");
+      throw new Error(
+        "PROFILE_NOT_FOUND"
+      );
     }
 
     renderProfile();
   }
 
   function renderProfile() {
-    if (!currentProfile) return;
+    if (!currentProfile) {
+      return;
+    }
 
     setText(
       "#profile-username",
@@ -306,18 +307,21 @@
 
     setText(
       "#profile-role",
-      roleLabel(currentProfile.role)
+      roleLabel(
+        currentProfile.role
+      )
     );
 
     const avatar =
       $("#profile-avatar-letter");
 
     if (avatar) {
-      avatar.textContent = String(
-        currentProfile.username || "V"
-      )
-        .charAt(0)
-        .toUpperCase();
+      avatar.textContent =
+        String(
+          currentProfile.username || "V"
+        )
+          .charAt(0)
+          .toUpperCase();
     }
   }
 
@@ -326,20 +330,25 @@
   ========================================================= */
 
   async function loadPlans() {
-    const { data, error } =
-      await supabase.rpc("vg_get_visible_plans");
+    const {
+      data,
+      error
+    } = await supabase.rpc(
+      "vg_get_visible_plans"
+    );
 
     if (error) {
       throw error;
     }
 
-    visiblePlans = Array.isArray(data)
-      ? [...data].sort(
-          (a, b) =>
-            Number(a.sequence_no) -
-            Number(b.sequence_no)
-        )
-      : [];
+    visiblePlans =
+      Array.isArray(data)
+        ? [...data].sort(
+            (a, b) =>
+              Number(a.sequence_no) -
+              Number(b.sequence_no)
+          )
+        : [];
 
     renderPlans();
   }
@@ -347,15 +356,18 @@
   function getPlanColors(plan) {
     return {
       primary:
-        plan?.color_primary || "#d4af37",
+        plan?.color_primary ||
+        "#d4af37",
 
       secondary:
-        plan?.color_secondary || "#8f6b1f"
+        plan?.color_secondary ||
+        "#8f6b1f"
     };
   }
 
   function applyPlanColors(plan) {
-    const colors = getPlanColors(plan);
+    const colors =
+      getPlanColors(plan);
 
     document.documentElement.style.setProperty(
       "--plan-primary",
@@ -383,11 +395,27 @@
     }
   }
 
+  function getNextPlan() {
+    if (!currentPlan) {
+      return null;
+    }
+
+    return (
+      visiblePlans.find(
+        (plan) =>
+          Number(plan.sequence_no) ===
+          Number(currentPlan.sequence_no) + 1
+      ) || null
+    );
+  }
+
   function renderPlans() {
     const container =
       $("#plans-list");
 
-    if (!container) return;
+    if (!container) {
+      return;
+    }
 
     if (!visiblePlans.length) {
       container.innerHTML = `
@@ -399,43 +427,73 @@
       return;
     }
 
+    const nextPlan =
+      getNextPlan();
+
     container.innerHTML =
       visiblePlans
         .map((plan) => {
           const colors =
             getPlanColors(plan);
 
-          const active =
+          const isCurrent =
             currentPlan?.id === plan.id;
+
+          const isNext =
+            nextPlan?.id === plan.id;
+
+          const isLocked =
+            isNext && !isCurrent;
 
           return `
             <article
-              class="plan-card ${active ? "active" : ""}"
-              data-plan-id="${escapeHtml(plan.id)}"
+              class="
+                plan-card
+                ${isCurrent ? "active" : ""}
+                ${isLocked ? "locked" : ""}
+              "
+              data-plan-id="${escapeHtml(
+                plan.id
+              )}"
+              ${
+                isLocked
+                  ? 'aria-disabled="true"'
+                  : ""
+              }
               style="
-                --card-primary:${escapeHtml(colors.primary)};
-                --card-secondary:${escapeHtml(colors.secondary)};
+                --card-primary:${escapeHtml(
+                  colors.primary
+                )};
+                --card-secondary:${escapeHtml(
+                  colors.secondary
+                )};
               "
             >
 
               <div class="plan-card-header">
 
                 <div>
+
                   <h3>
                     ${escapeHtml(
-                      plan.name || "Niveau"
+                      plan.name ||
+                        "Niveau"
                     )}
                   </h3>
 
                   <span>
-                    Niveau ${Number(
+                    Niveau
+                    ${Number(
                       plan.sequence_no || 0
                     )}
                   </span>
+
                 </div>
 
                 <strong class="plan-points">
-                  ${points(plan.plan_points)}
+                  ${points(
+                    plan.plan_points
+                  )}
                 </strong>
 
               </div>
@@ -446,10 +504,31 @@
                   Progression requise :
                   <strong>
                     ${Number(
-                      plan.required_progress || 0
+                      plan.required_progress ||
+                        0
                     )}
                   </strong>
                 </p>
+
+                ${
+                  isCurrent
+                    ? `
+                      <div class="plan-status current">
+                        Niveau actuel
+                      </div>
+                    `
+                    : isLocked
+                    ? `
+                      <div class="plan-status locked">
+                        🔒 Prochain niveau
+                      </div>
+                    `
+                    : `
+                      <div class="plan-status completed">
+                        Niveau du parcours
+                      </div>
+                    `
+                }
 
               </div>
 
@@ -464,37 +543,38 @@
   ========================================================= */
 
   function findActiveMembership(board) {
-    if (!Array.isArray(board)) {
-      return null;
-    }
-
-    if (!currentUser) {
+    if (
+      !Array.isArray(board) ||
+      !currentUser
+    ) {
       return null;
     }
 
     return (
       board.find(
         (row) =>
-          row.user_id === currentUser.id &&
+          row.user_id ===
+            currentUser.id &&
           row.membership_id &&
-          row.membership_status === "active"
+          row.membership_status ===
+            "active"
       ) || null
     );
   }
 
   function findPendingForCurrentUser(board) {
-    if (!Array.isArray(board)) {
-      return null;
-    }
-
-    if (!currentUser) {
+    if (
+      !Array.isArray(board) ||
+      !currentUser
+    ) {
       return null;
     }
 
     return (
       board.find(
         (row) =>
-          row.user_id === currentUser.id &&
+          row.user_id ===
+            currentUser.id &&
           row.pending_application_id
       ) || null
     );
@@ -508,11 +588,11 @@
     const plans =
       [...visiblePlans].sort(
         (a, b) =>
-          Number(a.sequence_no) -
-          Number(b.sequence_no)
+          Number(b.sequence_no) -
+          Number(a.sequence_no)
       );
 
-    let pendingCandidate = null;
+    let pendingBoard = null;
     let pendingPlan = null;
 
     for (const plan of plans) {
@@ -523,17 +603,18 @@
         } = await supabase.rpc(
           "vg_get_board",
           {
-            p_plan_id: plan.id
+            p_plan_id:
+              plan.id
           }
         );
 
+        /*
+         * Le RPC refuse volontairement
+         * les plans supérieurs au niveau
+         * actuel. C'est normal pour le
+         * prochain plan verrouillé.
+         */
         if (error) {
-          console.error(
-            "vg_get_board:",
-            plan.name,
-            error
-          );
-
           continue;
         }
 
@@ -546,15 +627,16 @@
           continue;
         }
 
+        const activeMembership =
+          findActiveMembership(
+            board
+          );
+
         /*
          * PRIORITÉ ABSOLUE :
-         * Si l'utilisateur possède déjà
-         * une adhésion active, son tableau
-         * doit être sélectionné.
+         * une personne déjà dans un tableau
+         * doit toujours voir ce tableau.
          */
-        const activeMembership =
-          findActiveMembership(board);
-
         if (activeMembership) {
           currentPlan = plan;
           currentBoard = board;
@@ -564,11 +646,6 @@
           break;
         }
 
-        /*
-         * Sinon, on garde éventuellement
-         * un tableau où sa demande est
-         * encore en attente.
-         */
         const pending =
           findPendingForCurrentUser(
             board
@@ -576,10 +653,13 @@
 
         if (
           pending &&
-          !pendingCandidate
+          !pendingBoard
         ) {
-          pendingCandidate = board;
-          pendingPlan = plan;
+          pendingBoard =
+            board;
+
+          pendingPlan =
+            plan;
         }
 
       } catch (error) {
@@ -591,16 +671,26 @@
     }
 
     /*
-     * Aucun membership actif :
-     * afficher le tableau de la demande
-     * si l'utilisateur est en attente.
+     * Demande en attente.
      */
-    if (!currentPlan && pendingCandidate) {
-      currentPlan = pendingPlan;
-      currentBoard = pendingCandidate;
-      currentMembership = null;
+    if (
+      !currentPlan &&
+      pendingBoard
+    ) {
+      currentPlan =
+        pendingPlan;
 
-      applyPlanColors(currentPlan);
+      currentBoard =
+        pendingBoard;
+
+      currentMembership =
+        null;
+
+      boardExpanded = false;
+
+      applyPlanColors(
+        currentPlan
+      );
 
       renderBoard();
       renderCurrentPlan();
@@ -613,17 +703,17 @@
      */
     if (!currentPlan) {
       currentBoard = [];
-      currentMembership = null;
+      currentMembership =
+        null;
 
       renderEmptyBoard();
 
       return;
     }
 
-    /*
-     * Tableau trouvé.
-     */
-    applyPlanColors(currentPlan);
+    applyPlanColors(
+      currentPlan
+    );
 
     calculateProgressFromBoard();
 
@@ -632,14 +722,13 @@
   }
 
   /*
-   * Le backend utilise les positions de progression
-   * comme source de vérité.
+   * Progression :
    *
    * Genesis :
-   * positions 2 à 9 = 8 progressions.
+   * positions 2 → 9 = 8 positions.
    *
    * Branch :
-   * positions 5 à 12 = 8 progressions.
+   * positions 5 → 12 = 8 positions.
    */
   function calculateProgressFromBoard() {
     if (!currentPlan) {
@@ -650,7 +739,8 @@
 
     requiredProgress =
       Number(
-        currentPlan.required_progress || 8
+        currentPlan.required_progress ||
+          8
       );
 
     if (!Array.isArray(currentBoard)) {
@@ -658,33 +748,40 @@
       return;
     }
 
+    const isBranch =
+      currentBoard.some(
+        (row) =>
+          Number(row.position_no) >=
+          12
+      );
+
+    const firstProgressPosition =
+      isBranch ? 5 : 2;
+
     currentProgress =
-      currentBoard.filter((row) => {
-        if (!row.membership_id) {
-          return false;
-        }
+      currentBoard.filter(
+        (row) =>
+          row.membership_id &&
+          row.membership_status ===
+            "active" &&
+          Number(row.position_no) >=
+            firstProgressPosition
+      ).length;
 
-        if (
-          row.membership_status !==
-          "active"
-        ) {
-          return false;
-        }
-
-        return Number(row.position_no) > 1;
-      }).length;
-
-    currentProgress = Math.min(
-      currentProgress,
-      requiredProgress
-    );
+    currentProgress =
+      Math.min(
+        currentProgress,
+        requiredProgress
+      );
   }
 
   function renderBoard() {
     const container =
       $("#board-container");
 
-    if (!container) return;
+    if (!container) {
+      return;
+    }
 
     if (
       !currentPlan ||
@@ -698,23 +795,28 @@
     const positions =
       new Map();
 
-    currentBoard.forEach((row) => {
-      positions.set(
-        Number(row.position_no),
-        row
-      );
-    });
+    currentBoard.forEach(
+      (row) => {
+        positions.set(
+          Number(row.position_no),
+          row
+        );
+      }
+    );
 
     const maxPosition =
       currentBoard.some(
         (row) =>
-          Number(row.position_no) >= 12
+          Number(row.position_no) >=
+          12
       )
         ? 12
         : 9;
 
     const colors =
-      getPlanColors(currentPlan);
+      getPlanColors(
+        currentPlan
+      );
 
     const nodes = [];
 
@@ -725,7 +827,9 @@
     ) {
       nodes.push(
         renderBoardNode(
-          positions.get(position),
+          positions.get(
+            position
+          ),
           position
         )
       );
@@ -735,31 +839,49 @@
       <div
         class="victory-board"
         style="
-          --board-primary:${escapeHtml(colors.primary)};
-          --board-secondary:${escapeHtml(colors.secondary)};
+          --board-primary:${escapeHtml(
+            colors.primary
+          )};
+          --board-secondary:${escapeHtml(
+            colors.secondary
+          )};
         "
       >
         ${nodes.join("")}
       </div>
     `;
 
+    container.hidden =
+      !boardExpanded;
+
+    if (boardExpanded) {
+      container.classList.add(
+        "board-is-open"
+      );
+    } else {
+      container.classList.remove(
+        "board-is-open"
+      );
+    }
+
     setText(
       "#board-plan-name",
-      currentPlan.name || "—"
+      currentPlan.name ||
+        "—"
     );
 
-    const cycleKind =
-      currentMembership?.cycle_kind ||
-      currentBoard[0]?.cycle_kind;
+    const isBranch =
+      maxPosition >= 12;
 
     setText(
       "#board-division-name",
-      cycleKind === "branch"
+      isBranch
         ? "Division de branche"
         : "Table Genesis"
     );
 
     bindBoardProfileButtons();
+    setupBoardToggle();
   }
 
   function renderBoardNode(
@@ -767,24 +889,16 @@
     position
   ) {
     /*
-     * POSITION LIBRE
+     * POSITION VIDE :
+     * absolument rien dedans.
      */
     if (!row) {
       return `
         <div
           class="board-node empty"
           data-position="${position}"
-        >
-
-          <span class="board-position">
-            ${position}
-          </span>
-
-          <span class="board-node-label">
-            Libre
-          </span>
-
-        </div>
+          aria-label="Position libre"
+        ></div>
       `;
     }
 
@@ -798,13 +912,13 @@
       );
 
     if (isPending) {
-      const pendingUsername =
+      const username =
         row.username ||
         (
           row.user_id ===
           currentUser?.id
             ? "Vous"
-            : "Demande en attente"
+            : "En attente"
         );
 
       return `
@@ -813,13 +927,9 @@
           data-position="${position}"
         >
 
-          <span class="board-position">
-            ${position}
-          </span>
-
-          <span class="board-node-label">
+          <span class="board-username">
             ${escapeHtml(
-              pendingUsername
+              username
             )}
           </span>
 
@@ -832,7 +942,7 @@
     }
 
     /*
-     * MEMBRE OCCUPANT
+     * MEMBRE ACTIF
      */
     if (row.membership_id) {
       const username =
@@ -863,22 +973,23 @@
             data-position="${position}"
           >
 
-            <span class="board-position">
-              ${position}
-            </span>
-
             <button
               type="button"
               class="board-username"
               data-public-profile="${escapeHtml(
                 row.user_id
               )}"
+              title="Voir le numéro de téléphone"
             >
-              ${escapeHtml(username)}
+              ${escapeHtml(
+                username
+              )}
             </button>
 
             <span class="board-role">
-              ${escapeHtml(role)}
+              ${escapeHtml(
+                role
+              )}
             </span>
 
           </div>
@@ -891,16 +1002,16 @@
           data-position="${position}"
         >
 
-          <span class="board-position">
-            ${position}
-          </span>
-
           <span class="board-username">
-            ${escapeHtml(username)}
+            ${escapeHtml(
+              username
+            )}
           </span>
 
           <span class="board-role">
-            ${escapeHtml(role)}
+            ${escapeHtml(
+              role
+            )}
           </span>
 
         </div>
@@ -908,25 +1019,15 @@
     }
 
     /*
-     * SÉCURITÉ :
-     * si la ligne existe mais n'a ni membre
-     * ni demande, elle reste libre.
+     * Une ligne sans membre ni demande
+     * reste un cercle vide.
      */
     return `
       <div
         class="board-node empty"
         data-position="${position}"
-      >
-
-        <span class="board-position">
-          ${position}
-        </span>
-
-        <span class="board-node-label">
-          Libre
-        </span>
-
-      </div>
+        aria-label="Position libre"
+      ></div>
     `;
   }
 
@@ -935,23 +1036,144 @@
       .querySelectorAll(
         "[data-public-profile]"
       )
-      .forEach((button) => {
-        button.addEventListener(
-          "click",
-          () => {
-            openPublicProfile(
-              button.dataset.publicProfile
-            );
+      .forEach(
+        (button) => {
+          if (
+            button.dataset.bound ===
+            "true"
+          ) {
+            return;
           }
-        );
-      });
+
+          button.dataset.bound =
+            "true";
+
+          button.addEventListener(
+            "click",
+            (event) => {
+              event.stopPropagation();
+
+              openPublicProfile(
+                button.dataset
+                  .publicProfile
+              );
+            }
+          );
+        }
+      );
+  }
+
+  function setupBoardToggle() {
+    const info =
+      $("#board-plan-info");
+
+    if (!info) {
+      return;
+    }
+
+    if (
+      info.dataset.bound ===
+      "true"
+    ) {
+      return;
+    }
+
+    info.dataset.bound =
+      "true";
+
+    info.setAttribute(
+      "role",
+      "button"
+    );
+
+    info.setAttribute(
+      "tabindex",
+      "0"
+    );
+
+    info.setAttribute(
+      "aria-expanded",
+      boardExpanded
+        ? "true"
+        : "false"
+    );
+
+    info.addEventListener(
+      "click",
+      (event) => {
+        if (
+          event.target.closest(
+            "button"
+          )
+        ) {
+          return;
+        }
+
+        toggleBoard();
+      }
+    );
+
+    info.addEventListener(
+      "keydown",
+      (event) => {
+        if (
+          event.key ===
+            "Enter" ||
+          event.key ===
+            " "
+        ) {
+          event.preventDefault();
+          toggleBoard();
+        }
+      }
+    );
+  }
+
+  function toggleBoard() {
+    if (
+      !currentBoard.length
+    ) {
+      return;
+    }
+
+    boardExpanded =
+      !boardExpanded;
+
+    const container =
+      $("#board-container");
+
+    if (container) {
+      container.hidden =
+        !boardExpanded;
+
+      container.classList.toggle(
+        "board-is-open",
+        boardExpanded
+      );
+    }
+
+    const info =
+      $("#board-plan-info");
+
+    if (info) {
+      info.setAttribute(
+        "aria-expanded",
+        boardExpanded
+          ? "true"
+          : "false"
+      );
+    }
   }
 
   function renderEmptyBoard() {
     const container =
       $("#board-container");
 
-    if (!container) return;
+    if (!container) {
+      return;
+    }
+
+    container.hidden = false;
 
     container.innerHTML = `
       <div class="empty-state">
@@ -1006,7 +1228,8 @@
 
     requiredProgress =
       Number(
-        currentPlan.required_progress || 8
+        currentPlan.required_progress ||
+          8
       );
 
     const progress =
@@ -1020,16 +1243,18 @@
         ? Math.min(
             100,
             Math.round(
-              (progress /
-                requiredProgress) *
-                100
+              (
+                progress /
+                requiredProgress
+              ) * 100
             )
           )
         : 0;
 
     setText(
       "#current-plan-name",
-      currentPlan.name || "—"
+      currentPlan.name ||
+        "—"
     );
 
     setText(
@@ -1051,26 +1276,32 @@
 
     setText(
       "#required-progress",
-      String(requiredProgress)
+      String(
+        requiredProgress
+      )
     );
 
     document
       .querySelectorAll(
         ".progress-fill,[data-progress-fill]"
       )
-      .forEach((element) => {
-        element.style.width =
-          `${percentage}%`;
-      });
+      .forEach(
+        (element) => {
+          element.style.width =
+            `${percentage}%`;
+        }
+      );
 
     document
       .querySelectorAll(
         "[data-progress-percent]"
       )
-      .forEach((element) => {
-        element.textContent =
-          `${percentage}%`;
-      });
+      .forEach(
+        (element) => {
+          element.textContent =
+            `${percentage}%`;
+        }
+      );
 
     renderSimulationArea();
     renderNextPlan();
@@ -1080,15 +1311,17 @@
     const area =
       $("#simulation-progress-area");
 
-    if (!area) return;
+    if (!area) {
+      return;
+    }
 
     const role =
       currentMembership?.member_role ||
       currentProfile?.role;
 
     /*
-     * Se sèlman Légende ki gen kontwòl
-     * sou progression simulation lan.
+     * Seule la Légende contrôle
+     * la progression de sa division.
      */
     if (
       role !== "legend" ||
@@ -1109,6 +1342,7 @@
       <div class="simulation-progress-card">
 
         <div>
+
           <strong>
             Progression de simulation
           </strong>
@@ -1117,20 +1351,24 @@
             ${currentProgress}
             /
             ${requiredProgress}
-            progression
-            ${
+            progression${
               requiredProgress > 1
                 ? "s"
                 : ""
             }
           </p>
+
         </div>
 
         <button
           type="button"
           id="simulation-progress-button"
           class="primary-button"
-          ${complete ? "disabled" : ""}
+          ${
+            complete
+              ? "disabled"
+              : ""
+          }
         >
           ${
             complete
@@ -1153,10 +1391,10 @@
     }
   }
 
-  /* =========================================================
-     PROCHAIN NIVEAU
-  ========================================================= */
-
+  /*
+   * Le prochain niveau est visible,
+   * mais jamais directement accessible.
+   */
   function renderNextPlan() {
     const section =
       $("#next-plan-section");
@@ -1164,35 +1402,20 @@
     const container =
       $("#next-plan-area");
 
-    if (!section || !container) {
+    if (
+      !section ||
+      !container
+    ) {
       return;
     }
 
-    const role =
-      currentMembership?.member_role ||
-      currentProfile?.role;
-
-    /*
-     * Se Légende ki gen progression
-     * sou pwochen nivo a.
-     */
-    if (
-      role !== "legend" ||
-      !currentMembership ||
-      !currentPlan
-    ) {
+    if (!currentPlan) {
       section.hidden = true;
       return;
     }
 
     const nextPlan =
-      visiblePlans.find(
-        (plan) =>
-          Number(plan.sequence_no) ===
-          Number(
-            currentPlan.sequence_no
-          ) + 1
-      );
+      getNextPlan();
 
     if (!nextPlan) {
       section.hidden = false;
@@ -1210,35 +1433,32 @@
 
     const complete =
       currentProgress >=
-      Number(
-        currentPlan.required_progress || 8
-      );
-
-    if (!complete) {
-      container.innerHTML = `
-        <div class="next-plan-info">
-
-          <strong>
-            ${escapeHtml(
-              nextPlan.name
-            )}
-          </strong>
-
-          <p>
-            Terminez votre progression actuelle
-            pour continuer votre parcours.
-          </p>
-
-        </div>
-      `;
-
-      return;
-    }
+      requiredProgress;
 
     container.innerHTML = `
-      <div class="next-plan-card">
+      <div
+        class="next-plan-card locked"
+        style="
+          --next-primary:${escapeHtml(
+            nextPlan.color_primary ||
+              "#d4af37"
+          )};
+          --next-secondary:${escapeHtml(
+            nextPlan.color_secondary ||
+              "#8f6b1f"
+          )};
+        "
+      >
 
-        <div>
+        <div class="next-plan-lock">
+          🔒
+        </div>
+
+        <div class="next-plan-details">
+
+          <span class="card-kicker">
+            PROCHAIN NIVEAU
+          </span>
 
           <strong>
             ${escapeHtml(
@@ -1246,49 +1466,44 @@
             )}
           </strong>
 
-          <p>
+          <span>
             ${points(
               nextPlan.plan_points
             )}
-          </p>
+          </span>
 
-          <small>
-            Votre demande sera soumise
-            à la Légende du nouveau niveau.
-          </small>
+          <p>
+            ${
+              complete
+                ? "Votre progression est terminée. L'accès au niveau suivant suit le processus de validation prévu."
+                : "Ce niveau est verrouillé. Terminez d'abord les conditions de votre niveau actuel."
+            }
+          </p>
 
         </div>
 
-        <button
-          type="button"
-          id="apply-next-plan-button"
-          class="primary-button"
-        >
-          Demander l'accès
-        </button>
+        <span class="next-plan-status">
+          ${
+            complete
+              ? "En attente du processus d'accès"
+              : "Accès verrouillé"
+          }
+        </span>
 
       </div>
     `;
-
-    const button =
-      $("#apply-next-plan-button");
-
-    if (button) {
-      button.addEventListener(
-        "click",
-        applyToNextPlan
-      );
-    }
   }
 
   /* =========================================================
-     DEMANDES PERSONNELLES
+     DEMANDE PERSONNELLE
   ========================================================= */
 
   async function loadMyPendingApplication() {
     pendingApplication = null;
 
-    if (!currentUser) return;
+    if (!currentUser) {
+      return;
+    }
 
     try {
       const {
@@ -1300,8 +1515,6 @@
           id,
           user_id,
           target_plan_id,
-          target_division_id,
-          target_table_id,
           target_cycle_id,
           target_slot_id,
           target_position_no,
@@ -1331,7 +1544,7 @@
 
       if (error) {
         console.error(
-          "Demandes personnelles:",
+          "Application:",
           error
         );
 
@@ -1345,9 +1558,10 @@
         pendingApplication =
           data[0];
       }
+
     } catch (error) {
       console.error(
-        "Erreur demande personnelle:",
+        "Erreur application:",
         error
       );
     }
@@ -1362,14 +1576,17 @@
     const content =
       $("#pending-content");
 
-    if (!section || !content) {
+    if (
+      !section ||
+      !content
+    ) {
       return;
     }
 
     /*
-     * Si la personne a déjà une
-     * adhésion active, elle n'a plus
-     * besoin d'une carte de demande.
+     * Dès qu'il est membre,
+     * il n'a plus de demande personnelle
+     * à afficher.
      */
     if (currentMembership) {
       section.hidden = true;
@@ -1403,16 +1620,9 @@
             <strong>
               ${Number(
                 pendingApplication.target_position_no ||
-                0
+                  0
               )}
             </strong>
-          </p>
-
-          <p>
-            Créée le :
-            ${formatDate(
-              pendingApplication.created_at
-            )}
           </p>
 
           <p>
@@ -1468,7 +1678,7 @@
 
       if (error) {
         console.error(
-          "Demandes Légende:",
+          "Demandes:",
           error
         );
 
@@ -1479,9 +1689,10 @@
         Array.isArray(data)
           ? data
           : [];
+
     } catch (error) {
       console.error(
-        "Erreur demandes Légende:",
+        "Erreur demandes:",
         error
       );
     }
@@ -1496,7 +1707,10 @@
     const list =
       $("#approval-list");
 
-    if (!section || !list) {
+    if (
+      !section ||
+      !list
+    ) {
       return;
     }
 
@@ -1527,13 +1741,10 @@
 
     list.innerHTML =
       legendApplications
-        .map((application) => {
-          return `
+        .map(
+          (application) => `
             <article
               class="approval-card"
-              data-application-id="${escapeHtml(
-                application.id
-              )}"
             >
 
               <div class="approval-card-main">
@@ -1547,7 +1758,7 @@
                   <strong>
                     ${Number(
                       application.target_position_no ||
-                      0
+                        0
                     )}
                   </strong>
                 </p>
@@ -1585,51 +1796,49 @@
               </button>
 
             </article>
-          `;
-        })
+          `
+        )
         .join("");
 
     list
       .querySelectorAll(
         ".approve-application-button"
       )
-      .forEach((button) => {
-        button.addEventListener(
-          "click",
-          () =>
-            approveApplication(
-              button.dataset
-                .applicationId,
-              button
-            )
-        );
-      });
+      .forEach(
+        (button) => {
+          button.addEventListener(
+            "click",
+            () =>
+              approveApplication(
+                button.dataset
+                  .applicationId,
+                button
+              )
+          );
+        }
+      );
   }
 
   /* =========================================================
-     ENTRÉE PREMIER PLAN
+     PREMIER TABLEAU
   ========================================================= */
 
   function renderJoinFirstPlan() {
     const container =
       $("#board-container");
 
-    if (!container) return;
+    if (!container) {
+      return;
+    }
 
     /*
-     * IMPORTANT :
-     * Si l'utilisateur est déjà dans
-     * un tableau, aucune demande ne doit
-     * apparaître ici.
+     * Jamais de bouton "Demander à entrer"
+     * si la personne possède déjà un tableau.
      */
     if (currentMembership) {
       return;
     }
 
-    /*
-     * S'il a déjà une demande en attente,
-     * on ne montre pas un deuxième bouton.
-     */
     if (pendingApplication) {
       return;
     }
@@ -1637,12 +1846,16 @@
     const firstPlan =
       visiblePlans.find(
         (plan) =>
-          Number(plan.sequence_no) === 1
+          Number(
+            plan.sequence_no
+          ) === 1
       );
 
     if (!firstPlan) {
       return;
     }
+
+    container.hidden = false;
 
     container.innerHTML = `
       <div class="join-table-card">
@@ -1693,10 +1906,6 @@
     }
   }
 
-  /* =========================================================
-     APPLICATION PREMIER PLAN
-  ========================================================= */
-
   async function applyToFirstPlan() {
     const button =
       $("#apply-first-plan-button");
@@ -1708,10 +1917,11 @@
     }
 
     try {
-      const { error } =
-        await supabase.rpc(
-          "vg_apply_to_first_plan"
-        );
+      const {
+        error
+      } = await supabase.rpc(
+        "vg_apply_to_first_plan"
+      );
 
       if (error) {
         throw error;
@@ -1739,39 +1949,37 @@
   }
 
   /* =========================================================
-     APPLICATION PLAN SUIVANT
+     PLAN SUIVANT
   ========================================================= */
 
   async function applyToNextPlan() {
+    /*
+     * Cette fonction reste disponible pour
+     * le processus backend, mais aucun bouton
+     * d'accès direct au prochain niveau n'est
+     * affiché dans l'interface.
+     */
     if (!currentUser) {
       return;
     }
 
-    const button =
-      $("#apply-next-plan-button");
-
-    if (button) {
-      button.disabled = true;
-      button.textContent =
-        "Envoi...";
-    }
-
     try {
-      const { error } =
-        await supabase.rpc(
-          "vg_apply_to_next_plan_for_user",
-          {
-            p_user_id:
-              currentUser.id
-          }
-        );
+      const {
+        error
+      } = await supabase.rpc(
+        "vg_apply_to_next_plan_for_user",
+        {
+          p_user_id:
+            currentUser.id
+        }
+      );
 
       if (error) {
         throw error;
       }
 
       notify(
-        "Votre demande pour le niveau suivant a été envoyée à la Légende concernée.",
+        "Votre demande pour le niveau suivant a été enregistrée.",
         "success"
       );
 
@@ -1782,12 +1990,6 @@
         errorMessage(error),
         "error"
       );
-
-      if (button) {
-        button.disabled = false;
-        button.textContent =
-          "Demander l'accès";
-      }
     }
   }
 
@@ -1810,14 +2012,15 @@
     }
 
     try {
-      const { error } =
-        await supabase.rpc(
-          "vg_approve_application",
-          {
-            p_application_id:
-              applicationId
-          }
-        );
+      const {
+        error
+      } = await supabase.rpc(
+        "vg_approve_application",
+        {
+          p_application_id:
+            applicationId
+        }
+      );
 
       if (error) {
         throw error;
@@ -1845,7 +2048,7 @@
   }
 
   /* =========================================================
-     PROGRESSION DE SIMULATION
+     PROGRESSION
   ========================================================= */
 
   async function recordSimulationProgress() {
@@ -1886,7 +2089,8 @@
       }
 
       const result =
-        firstRow(data) || data;
+        firstRow(data) ||
+        data;
 
       notify(
         result?.completed
@@ -1929,7 +2133,8 @@
       } = await supabase.rpc(
         "vg_get_public_profile",
         {
-          p_user_id: userId
+          p_user_id:
+            userId
         }
       );
 
@@ -1973,22 +2178,28 @@
 
       if (username) {
         username.textContent =
-          profile.username || "—";
+          profile.username ||
+          "—";
       }
 
       if (phone) {
         phone.textContent =
-          profile.phone || "—";
+          profile.phone ||
+          "—";
       }
 
       if (role) {
         role.textContent =
-          roleLabel(profile.role);
+          roleLabel(
+            profile.role
+          );
       }
 
       modal.hidden = false;
 
-      modal.classList.add("open");
+      modal.classList.add(
+        "open"
+      );
 
       modal.setAttribute(
         "aria-hidden",
@@ -2007,11 +2218,15 @@
     const modal =
       $("#public-profile-modal");
 
-    if (!modal) return;
+    if (!modal) {
+      return;
+    }
 
     modal.hidden = true;
 
-    modal.classList.remove("open");
+    modal.classList.remove(
+      "open"
+    );
 
     modal.setAttribute(
       "aria-hidden",
@@ -2024,44 +2239,24 @@
       .querySelectorAll(
         "[data-close-public-profile]"
       )
-      .forEach((element) => {
-        if (
-          element.dataset.bound ===
-          "true"
-        ) {
-          return;
-        }
-
-        element.dataset.bound =
-          "true";
-
-        element.addEventListener(
-          "click",
-          closePublicProfile
-        );
-      });
-
-    const modal =
-      $("#public-profile-modal");
-
-    if (
-      modal &&
-      modal.dataset.bound !== "true"
-    ) {
-      modal.dataset.bound =
-        "true";
-
-      modal.addEventListener(
-        "click",
-        (event) => {
+      .forEach(
+        (element) => {
           if (
-            event.target === modal
+            element.dataset.bound ===
+            "true"
           ) {
-            closePublicProfile();
+            return;
           }
+
+          element.dataset.bound =
+            "true";
+
+          element.addEventListener(
+            "click",
+            closePublicProfile
+          );
         }
       );
-    }
   }
 
   /* =========================================================
@@ -2078,11 +2273,6 @@
       );
 
       if (error) {
-        console.error(
-          "Lien referral:",
-          error
-        );
-
         return;
       }
 
@@ -2094,69 +2284,74 @@
       }
 
       const url =
-        referral.referral_url || "";
+        referral.referral_url ||
+        "";
 
       const code =
-        referral.referral_code || "";
+        referral.referral_code ||
+        "";
 
       document
         .querySelectorAll(
           "[data-referral-link]"
         )
-        .forEach((element) => {
-          if (
-            element.tagName ===
-              "INPUT" ||
-            element.tagName ===
-              "TEXTAREA"
-          ) {
-            element.value = url;
-          } else {
-            element.textContent = url;
+        .forEach(
+          (element) => {
+            if (
+              element.tagName ===
+                "INPUT" ||
+              element.tagName ===
+                "TEXTAREA"
+            ) {
+              element.value =
+                url;
+            } else {
+              element.textContent =
+                url;
+            }
           }
-        });
+        );
 
       document
         .querySelectorAll(
           "[data-referral-code]"
         )
-        .forEach((element) => {
-          element.textContent =
-            code;
-        });
+        .forEach(
+          (element) => {
+            element.textContent =
+              code;
+          }
+        );
 
       document
         .querySelectorAll(
           "[data-copy-referral]"
         )
-        .forEach((button) => {
-          button.onclick =
-            async () => {
-              try {
-                await navigator.clipboard.writeText(
-                  url
-                );
+        .forEach(
+          (button) => {
+            button.onclick =
+              async () => {
+                try {
+                  await navigator.clipboard.writeText(
+                    url
+                  );
 
-                notify(
-                  "Lien de parrainage copié.",
-                  "success"
-                );
+                  notify(
+                    "Lien de parrainage copié.",
+                    "success"
+                  );
 
-              } catch {
-                notify(
-                  "Impossible de copier automatiquement le lien.",
-                  "error"
-                );
-              }
-            };
-        });
+                } catch {
+                  notify(
+                    "Impossible de copier automatiquement le lien.",
+                    "error"
+                  );
+                }
+              };
+          }
+        );
 
-    } catch (error) {
-      console.error(
-        "Referral:",
-        error
-      );
-    }
+    } catch {}
   }
 
   async function processReferralCode() {
@@ -2173,14 +2368,15 @@
     }
 
     try {
-      const { error } =
-        await supabase.rpc(
-          "vg_set_referrer_by_code",
-          {
-            p_referral_code:
-              code.trim()
-          }
-        );
+      const {
+        error
+      } = await supabase.rpc(
+        "vg_set_referrer_by_code",
+        {
+          p_referral_code:
+            code.trim()
+        }
+      );
 
       if (!error) {
         notify(
@@ -2195,12 +2391,7 @@
         );
       }
 
-    } catch (error) {
-      console.error(
-        "Referral code:",
-        error
-      );
-    }
+    } catch {}
   }
 
   /* =========================================================
@@ -2215,9 +2406,11 @@
         "[data-donation-button]," +
         ".donation-button"
       )
-      .forEach((element) => {
-        element.hidden = true;
-      });
+      .forEach(
+        (element) => {
+          element.hidden = true;
+        }
+      );
   }
 
   function setupLogout() {
@@ -2225,22 +2418,24 @@
       .querySelectorAll(
         "#logout-button,[data-logout]"
       )
-      .forEach((button) => {
-        if (
-          button.dataset.bound ===
-          "true"
-        ) {
-          return;
+      .forEach(
+        (button) => {
+          if (
+            button.dataset.bound ===
+            "true"
+          ) {
+            return;
+          }
+
+          button.dataset.bound =
+            "true";
+
+          button.addEventListener(
+            "click",
+            logout
+          );
         }
-
-        button.dataset.bound =
-          "true";
-
-        button.addEventListener(
-          "click",
-          logout
-        );
-      });
+      );
   }
 
   function setupRefresh() {
@@ -2249,22 +2444,24 @@
         "#refresh-button," +
         "#board-refresh-button"
       )
-      .forEach((button) => {
-        if (
-          button.dataset.bound ===
-          "true"
-        ) {
-          return;
+      .forEach(
+        (button) => {
+          if (
+            button.dataset.bound ===
+            "true"
+          ) {
+            return;
+          }
+
+          button.dataset.bound =
+            "true";
+
+          button.addEventListener(
+            "click",
+            refreshDashboard
+          );
         }
-
-        button.dataset.bound =
-          "true";
-
-        button.addEventListener(
-          "click",
-          refreshDashboard
-        );
-      });
+      );
   }
 
   function updateCountdowns() {
@@ -2272,12 +2469,15 @@
       .querySelectorAll(
         "[data-countdown]"
       )
-      .forEach((element) => {
-        element.textContent =
-          formatCountdown(
-            element.dataset.countdown
-          );
-      });
+      .forEach(
+        (element) => {
+          element.textContent =
+            formatCountdown(
+              element.dataset
+                .countdown
+            );
+        }
+      );
   }
 
   async function logout() {
@@ -2303,7 +2503,7 @@
   }
 
   /* =========================================================
-     RAFRAÎCHISSEMENT
+     REFRESH
   ========================================================= */
 
   async function refreshDashboard() {
@@ -2313,17 +2513,13 @@
 
     try {
       await loadProfile();
-
       await loadPlans();
-
       await loadMyPendingApplication();
-
       await loadCurrentBoard();
 
       /*
-       * Si aucun membership actif :
-       * soit une demande existe,
-       * soit il faut proposer l'entrée.
+       * Si l'utilisateur possède déjà
+       * un tableau : aucun bouton d'entrée.
        */
       if (!currentMembership) {
         renderMyPendingApplication();
@@ -2334,19 +2530,15 @@
       }
 
       await loadLegendApplications();
-
       await loadReferralLink();
 
       renderPlans();
 
       setupPublicProfileModal();
-
       setupLogout();
-
       setupRefresh();
 
       hideLegacyDonationInterface();
-
       updateCountdowns();
 
       showApp();
@@ -2376,7 +2568,7 @@
   }
 
   /* =========================================================
-     INITIALISATION
+     INIT
   ========================================================= */
 
   async function init() {
@@ -2415,32 +2607,17 @@
 
       await processReferralCode();
 
-      try {
-        await loadProfile();
-
-      } catch (error) {
-        if (
-          error?.message ===
-          "PROFILE_NOT_FOUND"
-        ) {
-          await handleMissingProfile();
-          return;
-        }
-
-        throw error;
-      }
+      await loadProfile();
 
       await loadPlans();
 
       await loadMyPendingApplication();
 
       /*
-       * C'est ici que le correctif principal
-       * intervient :
-       *
-       * on cherche d'abord une vraie
-       * adhésion active avant de considérer
-       * l'utilisateur comme "sans tableau".
+       * Recherche d'abord l'adhésion active.
+       * Donc Genesis et tout autre membre
+       * déjà placé dans une division voient
+       * leur tableau.
        */
       await loadCurrentBoard();
 
@@ -2459,18 +2636,13 @@
       renderPlans();
 
       setupPublicProfileModal();
-
       setupLogout();
-
       setupRefresh();
 
       hideLegacyDonationInterface();
-
       updateCountdowns();
 
-      if (
-        countdownTimer
-      ) {
+      if (countdownTimer) {
         clearInterval(
           countdownTimer
         );
@@ -2486,9 +2658,17 @@
 
     } catch (error) {
       console.error(
-        "Initialisation dashboard:",
+        "Initialisation:",
         error
       );
+
+      if (
+        error?.message ===
+        "PROFILE_NOT_FOUND"
+      ) {
+        await handleMissingProfile();
+        return;
+      }
 
       notify(
         errorMessage(error),
@@ -2501,7 +2681,7 @@
   }
 
   /* =========================================================
-     API GLOBALE
+     API
   ========================================================= */
 
   window.VG_APP = {
@@ -2520,7 +2700,9 @@
 
     approveApplication,
 
-    recordSimulationProgress
+    recordSimulationProgress,
+
+    toggleBoard
   };
 
   document.addEventListener(
