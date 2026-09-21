@@ -30,9 +30,7 @@
 
   function escapeHtml(value) {
     if (window.VG_UI?.escapeHtml) {
-      return window.VG_UI.escapeHtml(
-        value ?? ""
-      );
+      return window.VG_UI.escapeHtml(value ?? "");
     }
 
     return String(value ?? "")
@@ -56,42 +54,17 @@
 
     const number = Number(value);
 
-    return `V$${new Intl.NumberFormat(
-      "fr-FR",
-      {
-        maximumFractionDigits: 2
-      }
-    ).format(
-      Number.isFinite(number)
-        ? number
-        : 0
+    return `V$${new Intl.NumberFormat("fr-FR", {
+      maximumFractionDigits: 2
+    }).format(
+      Number.isFinite(number) ? number : 0
     )}`;
   }
 
-  function formatDate(value) {
-    if (!value) return "—";
-
-    if (window.VG_UI?.formatDate) {
-      return window.VG_UI.formatDate(value);
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
+  function countdown(value) {
+    if (!value) {
       return "—";
     }
-
-    return new Intl.DateTimeFormat(
-      "fr-FR",
-      {
-        dateStyle: "medium",
-        timeStyle: "short"
-      }
-    ).format(date);
-  }
-
-  function countdown(value) {
-    if (!value) return "—";
 
     const target =
       new Date(value).getTime();
@@ -107,14 +80,10 @@
     }
 
     const totalSeconds =
-      Math.floor(
-        remaining / 1000
-      );
+      Math.floor(remaining / 1000);
 
     const minutes =
-      Math.floor(
-        totalSeconds / 60
-      );
+      Math.floor(totalSeconds / 60);
 
     const seconds =
       totalSeconds % 60;
@@ -168,7 +137,9 @@
     const loading =
       $("#dashboard-loading");
 
-    if (!loading) return;
+    if (!loading) {
+      return;
+    }
 
     loading.hidden = false;
 
@@ -255,18 +226,18 @@
       [
         "active legend not found",
         "Aucune Légende active n'a été trouvée."
+      ],
+      [
+        "profile not found",
+        "Profil introuvable."
       ]
     ];
 
     for (
-      const [
-        search,
-        translation
-      ] of translations
+      const [search, translation]
+      of translations
     ) {
-      if (
-        text.includes(search)
-      ) {
+      if (text.includes(search)) {
         return translation;
       }
     }
@@ -299,13 +270,6 @@
       );
     }
 
-    /*
-     * IMPORTANT :
-     * Le backend renvoie user_id.
-     * On utilise celui-ci comme référence
-     * principale au lieu de dépendre uniquement
-     * de session.user.id.
-     */
     viewerUserId =
       currentProfile.user_id ||
       currentUser?.id ||
@@ -321,8 +285,7 @@
 
     setText(
       "#profile-username",
-      currentProfile.username ||
-        "—"
+      currentProfile.username || "—"
     );
 
     setText(
@@ -358,6 +321,13 @@
           .charAt(0)
           .toUpperCase();
     }
+
+    setText(
+      "#welcome-title",
+      `Bienvenue, ${
+        currentProfile.username || ""
+      }`
+    );
   }
 
   /* =========================================================
@@ -380,12 +350,8 @@
       Array.isArray(data)
         ? [...data].sort(
             (a, b) =>
-              Number(
-                a.sequence_no
-              ) -
-              Number(
-                b.sequence_no
-              )
+              Number(a.sequence_no) -
+              Number(b.sequence_no)
           )
         : [];
 
@@ -396,11 +362,11 @@
     return {
       primary:
         plan?.color_primary ||
-        "#d4af37",
+        "#D4AF37",
 
       secondary:
         plan?.color_secondary ||
-        "#8f6b1f"
+        "#8F6B1F"
     };
   }
 
@@ -412,12 +378,8 @@
     return (
       visiblePlans.find(
         (plan) =>
-          Number(
-            plan.sequence_no
-          ) ===
-          Number(
-            currentPlan.sequence_no
-          ) + 1
+          Number(plan.sequence_no) ===
+          Number(currentPlan.sequence_no) + 1
       ) || null
     );
   }
@@ -451,7 +413,6 @@
           Aucun niveau disponible pour le moment.
         </div>
       `;
-
       return;
     }
 
@@ -462,12 +423,10 @@
       visiblePlans
         .map((plan) => {
           const isCurrent =
-            currentPlan?.id ===
-            plan.id;
+            currentPlan?.id === plan.id;
 
           const isNext =
-            nextPlan?.id ===
-            plan.id;
+            nextPlan?.id === plan.id;
 
           const colors =
             getPlanColors(plan);
@@ -480,12 +439,8 @@
                 ${isNext ? "locked" : ""}
               "
               style="
-                --card-primary:${escapeHtml(
-                  colors.primary
-                )};
-                --card-secondary:${escapeHtml(
-                  colors.secondary
-                )};
+                --card-primary:${escapeHtml(colors.primary)};
+                --card-secondary:${escapeHtml(colors.secondary)};
               "
             >
 
@@ -494,16 +449,13 @@
                 <div>
                   <h3>
                     ${escapeHtml(
-                      plan.name ||
-                      "Niveau"
+                      plan.name || "Niveau"
                     )}
                   </h3>
 
                   <span>
-                    Niveau
-                    ${Number(
-                      plan.sequence_no ||
-                      0
+                    Niveau ${Number(
+                      plan.sequence_no || 0
                     )}
                   </span>
                 </div>
@@ -522,8 +474,7 @@
                   Progression requise :
                   <strong>
                     ${Number(
-                      plan.required_progress ||
-                      0
+                      plan.required_progress || 0
                     )}
                   </strong>
                 </p>
@@ -557,134 +508,107 @@
   }
 
   /* =========================================================
-     TABLEAU
+     CONTEXTE COMPLET DU DASHBOARD
   ========================================================= */
 
-  function findActiveMembership(
-    board
-  ) {
-    if (
-      !Array.isArray(board) ||
-      !viewerUserId
-    ) {
-      return null;
+  async function loadDashboardContext() {
+    const {
+      data,
+      error
+    } = await supabase.rpc(
+      "vg_get_dashboard_context"
+    );
+
+    if (error) {
+      throw error;
     }
 
-    return (
-      board.find(
-        (row) =>
-          row.user_id ===
-            viewerUserId &&
-          row.membership_id &&
-          row.membership_status ===
-            "active"
-      ) || null
-    );
-  }
+    const context =
+      firstRow(data);
 
-  async function loadCurrentBoard() {
-    currentPlan = null;
-    currentBoard = [];
-    currentMembership = null;
-
-    /*
-     * On cherche d'abord le tableau
-     * auquel l'utilisateur appartient.
-     */
-    const plans =
-      [...visiblePlans].sort(
-        (a, b) =>
-          Number(
-            b.sequence_no
-          ) -
-          Number(
-            a.sequence_no
-          )
+    if (!context) {
+      throw new Error(
+        "Impossible de charger votre espace."
       );
-
-    for (
-      const plan of plans
-    ) {
-      try {
-        const {
-          data,
-          error
-        } = await supabase.rpc(
-          "vg_get_board",
-          {
-            p_plan_id:
-              plan.id
-          }
-        );
-
-        if (error) {
-          continue;
-        }
-
-        const board =
-          Array.isArray(data)
-            ? data
-            : [];
-
-        if (!board.length) {
-          continue;
-        }
-
-        const membership =
-          findActiveMembership(
-            board
-          );
-
-        /*
-         * TROUVE !
-         */
-        if (membership) {
-          currentPlan =
-            plan;
-
-          currentBoard =
-            board;
-
-          currentMembership =
-            membership;
-
-          break;
-        }
-
-      } catch (error) {
-        console.error(
-          "Erreur tableau:",
-          error
-        );
-      }
     }
+
+    currentMembership =
+      context.current_membership || null;
+
+    currentPlan =
+      context.current_plan || null;
+
+    currentBoard =
+      Array.isArray(
+        context.current_board
+      )
+        ? context.current_board
+        : [];
 
     /*
-     * Si aucun tableau n'est trouvé,
-     * alors seulement on considère
-     * l'utilisateur comme sans tableau.
+     * Le RPC backend est maintenant
+     * la source officielle.
+     *
+     * Plus besoin de chercher le membership
+     * dans les lignes du tableau.
      */
-    if (!currentPlan) {
-      currentBoard = [];
-      currentMembership = null;
 
-      renderNoBoard();
-
-      return;
+    if (currentMembership) {
+      currentMembership =
+        normalizeMembership(
+          currentMembership
+        );
     }
 
-    applyPlanColors(
-      currentPlan
-    );
+    if (currentPlan) {
+      applyPlanColors(
+        currentPlan
+      );
+    }
 
     calculateProgress();
 
     renderCurrentPlan();
     renderBoard();
+    renderPlans();
   }
 
+  function normalizeMembership(
+    membership
+  ) {
+    if (!membership) {
+      return null;
+    }
+
+    return {
+      ...membership,
+
+      membership_id:
+        membership.membership_id ||
+        membership.id ||
+        null,
+
+      member_role:
+        membership.member_role ||
+        membership.role ||
+        "member",
+
+      membership_status:
+        membership.membership_status ||
+        membership.status ||
+        null
+    };
+  }
+
+  /* =========================================================
+     PROGRESSION
+  ========================================================= */
+
   function calculateProgress() {
-    if (!currentPlan) {
+    if (
+      !currentPlan ||
+      !currentMembership
+    ) {
       currentProgress = 0;
       requiredProgress = 0;
       return;
@@ -696,20 +620,14 @@
         8
       );
 
-    /*
-     * Genesis = positions 2 à 9.
-     * Branch = positions 5 à 12.
-     */
-    const branch =
+    const isBranch =
       currentBoard.some(
         (row) =>
-          Number(
-            row.position_no
-          ) >= 12
+          Number(row.position_no) >= 12
       );
 
-    const firstPosition =
-      branch ? 5 : 2;
+    const firstProgressionPosition =
+      isBranch ? 5 : 2;
 
     currentProgress =
       currentBoard.filter(
@@ -717,9 +635,8 @@
           row.membership_id &&
           row.membership_status ===
             "active" &&
-          Number(
-            row.position_no
-          ) >= firstPosition
+          Number(row.position_no) >=
+            firstProgressionPosition
       ).length;
 
     currentProgress =
@@ -729,394 +646,58 @@
       );
   }
 
-  function renderBoard() {
-    const container =
-      $("#board-container");
-
-    if (!container) {
-      return;
-    }
-
-    if (
-      !currentPlan ||
-      !currentBoard.length
-    ) {
-      renderNoBoard();
-      return;
-    }
-
-    const positions =
-      new Map();
-
-    currentBoard.forEach(
-      (row) => {
-        positions.set(
-          Number(
-            row.position_no
-          ),
-          row
-        );
-      }
-    );
-
-    const isBranch =
-      currentBoard.some(
-        (row) =>
-          Number(
-            row.position_no
-          ) >= 12
-      );
-
-    const maxPosition =
-      isBranch ? 12 : 9;
-
-    const colors =
-      getPlanColors(
-        currentPlan
-      );
-
-    const nodes = [];
-
-    for (
-      let position = 1;
-      position <= maxPosition;
-      position++
-    ) {
-      nodes.push(
-        renderBoardNode(
-          positions.get(
-            position
-          ),
-          position
-        )
-      );
-    }
-
-    container.innerHTML = `
-      <div
-        class="victory-board"
-        style="
-          --board-primary:${escapeHtml(
-            colors.primary
-          )};
-          --board-secondary:${escapeHtml(
-            colors.secondary
-          )};
-        "
-      >
-        ${nodes.join("")}
-      </div>
-    `;
-
-    container.hidden =
-      !boardExpanded;
-
-    setText(
-      "#board-plan-name",
-      currentPlan.name ||
-        "—"
-    );
-
-    setText(
-      "#board-division-name",
-      isBranch
-        ? "Division de branche"
-        : "Table Genesis"
-    );
-
-    bindBoardNames();
-    setupBoardToggle();
-  }
-
-  function renderBoardNode(
-    row,
-    position
-  ) {
-    /*
-     * IMPORTANT :
-     * Une position vide ne contient
-     * absolument aucun texte.
-     */
-    if (!row) {
-      return `
-        <div
-          class="board-node empty"
-          data-position="${position}"
-        ></div>
-      `;
-    }
-
-    /*
-     * DEMANDE EN ATTENTE
-     */
-    if (
-      !row.membership_id &&
-      row.pending_application_id
-    ) {
-      const username =
-        row.username ||
-        "En attente";
-
-      return `
-        <div
-          class="board-node pending"
-          data-position="${position}"
-        >
-
-          <span class="board-username">
-            ${escapeHtml(
-              username
-            )}
-          </span>
-
-          <span class="board-pending">
-            En attente
-          </span>
-
-        </div>
-      `;
-    }
-
-    /*
-     * MEMBRE ACTIF
-     */
-    if (row.membership_id) {
-      const username =
-        row.username ||
-        "Membre";
-
-      const role =
-        roleLabel(
-          row.member_role
-        );
-
-      const isMe =
-        row.user_id ===
-        viewerUserId;
-
-      if (!isMe) {
-        return `
-          <div
-            class="board-node occupied"
-            data-position="${position}"
-          >
-
-            <button
-              type="button"
-              class="board-username"
-              data-public-profile="${escapeHtml(
-                row.user_id
-              )}"
-            >
-              ${escapeHtml(
-                username
-              )}
-            </button>
-
-            <span class="board-role">
-              ${escapeHtml(
-                role
-              )}
-            </span>
-
-          </div>
-        `;
-      }
-
-      return `
-        <div
-          class="
-            board-node
-            occupied
-            current-user
-          "
-          data-position="${position}"
-        >
-
-          <span class="board-username">
-            ${escapeHtml(
-              username
-            )}
-          </span>
-
-          <span class="board-role">
-            ${escapeHtml(
-              role
-            )}
-          </span>
-
-        </div>
-      `;
-    }
-
-    return `
-      <div
-        class="board-node empty"
-        data-position="${position}"
-      ></div>
-    `;
-  }
-
-  function bindBoardNames() {
-    document
-      .querySelectorAll(
-        "[data-public-profile]"
-      )
-      .forEach(
-        (button) => {
-          button.addEventListener(
-            "click",
-            () => {
-              openPublicProfile(
-                button.dataset
-                  .publicProfile
-              );
-            }
-          );
-        }
-      );
-  }
-
-  function setupBoardToggle() {
-    const info =
-      $("#board-plan-info");
-
-    if (!info) {
-      return;
-    }
-
-    if (
-      info.dataset.bound ===
-      "true"
-    ) {
-      return;
-    }
-
-    info.dataset.bound =
-      "true";
-
-    info.style.cursor =
-      "pointer";
-
-    info.addEventListener(
-      "click",
-      () => {
-        toggleBoard();
-      }
-    );
-  }
-
-  function toggleBoard() {
-    if (
-      !currentMembership ||
-      !currentBoard.length
-    ) {
-      return;
-    }
-
-    boardExpanded =
-      !boardExpanded;
-
-    const container =
-      $("#board-container");
-
-    if (container) {
-      container.hidden =
-        !boardExpanded;
-    }
-
-    const info =
-      $("#board-plan-info");
-
-    if (info) {
-      info.setAttribute(
-        "aria-expanded",
-        boardExpanded
-          ? "true"
-          : "false"
-      );
-    }
-  }
-
-  function renderNoBoard() {
-    const container =
-      $("#board-container");
-
-    if (!container) {
-      return;
-    }
-
-    setText(
-      "#board-plan-name",
-      "—"
-    );
-
-    setText(
-      "#board-division-name",
-      "—"
-    );
-
-    /*
-     * Si Genesis ou un autre membre
-     * possède réellement un membership,
-     * cette fonction ne doit jamais être appelée.
-     */
-    if (currentMembership) {
-      return;
-    }
-
-    container.hidden = false;
-
-    container.innerHTML = `
-      <div class="join-table-card">
-
-        <div class="join-table-icon">
-          +
-        </div>
-
-        <div>
-
-          <h3>
-            Rejoindre le premier tableau
-          </h3>
-
-          <p>
-            Envoyez votre demande à la
-            Légende. Vous entrerez uniquement
-            après son approbation.
-          </p>
-
-          <span>
-            Niveau V$1
-          </span>
-
-        </div>
-
-        <button
-          type="button"
-          id="apply-first-plan-button"
-          class="primary-button"
-        >
-          Demander à entrer
-        </button>
-
-      </div>
-    `;
-
-    $(
-      "#apply-first-plan-button"
-    )?.addEventListener(
-      "click",
-      applyToFirstPlan
-    );
-  }
-
-  /* =========================================================
-     PROGRESSION
-  ========================================================= */
-
   function renderCurrentPlan() {
     if (!currentPlan) {
+      setText(
+        "#current-plan-name",
+        "Aucun niveau actif"
+      );
+
+      setText(
+        "#current-plan-points",
+        "V$0"
+      );
+
+      setText(
+        "#progress-value",
+        "0 / 0"
+      );
+
+      setText(
+        "#progress-count",
+        "0"
+      );
+
+      setText(
+        "#required-progress",
+        "0"
+      );
+
+      document
+        .querySelectorAll(
+          "[data-progress-fill]"
+        )
+        .forEach(
+          (element) => {
+            element.style.width =
+              "0%";
+          }
+        );
+
+      document
+        .querySelectorAll(
+          "[data-progress-percent]"
+        )
+        .forEach(
+          (element) => {
+            element.textContent =
+              "0%";
+          }
+        );
+
+      renderNextPlan();
+      renderSimulationProgress();
+
       return;
     }
 
@@ -1135,10 +716,8 @@
     const percentage =
       required > 0
         ? Math.round(
-            (
-              progress /
-              required
-            ) * 100
+            (progress / required) *
+              100
           )
         : 0;
 
@@ -1207,9 +786,7 @@
     const role =
       currentMembership?.member_role;
 
-    if (
-      role !== "legend"
-    ) {
+    if (role !== "legend") {
       area.hidden = true;
       area.innerHTML = "";
       return;
@@ -1240,11 +817,7 @@
           type="button"
           id="simulation-progress-button"
           class="primary-button"
-          ${
-            complete
-              ? "disabled"
-              : ""
-          }
+          ${complete ? "disabled" : ""}
         >
           ${
             complete
@@ -1256,12 +829,11 @@
       </div>
     `;
 
-    $(
-      "#simulation-progress-button"
-    )?.addEventListener(
-      "click",
-      recordSimulationProgress
-    );
+    $("#simulation-progress-button")
+      ?.addEventListener(
+        "click",
+        recordSimulationProgress
+      );
   }
 
   function renderNextPlan() {
@@ -1304,7 +876,7 @@
 
           <strong>
             ${escapeHtml(
-              next.name
+              next.name || "Niveau"
             )}
           </strong>
 
@@ -1334,6 +906,452 @@
 
       </div>
     `;
+  }
+
+  /* =========================================================
+     TABLEAU
+  ========================================================= */
+
+  function renderBoard() {
+    const container =
+      $("#board-container");
+
+    if (!container) {
+      return;
+    }
+
+    if (
+      !currentMembership ||
+      !currentPlan ||
+      !currentBoard.length
+    ) {
+      renderNoBoard();
+      return;
+    }
+
+    const positions =
+      new Map();
+
+    currentBoard.forEach(
+      (row) => {
+        positions.set(
+          Number(
+            row.position_no
+          ),
+          row
+        );
+      }
+    );
+
+    const isBranch =
+      currentBoard.some(
+        (row) =>
+          Number(
+            row.position_no
+          ) >= 12
+      );
+
+    const maxPosition =
+      isBranch ? 12 : 9;
+
+    const colors =
+      getPlanColors(
+        currentPlan
+      );
+
+    const nodes = [];
+
+    for (
+      let position = 1;
+      position <= maxPosition;
+      position++
+    ) {
+      nodes.push(
+        renderBoardNode(
+          positions.get(position),
+          position
+        )
+      );
+    }
+
+    container.innerHTML = `
+      <div
+        class="victory-board"
+        style="
+          --board-primary:${escapeHtml(
+            colors.primary
+          )};
+          --board-secondary:${escapeHtml(
+            colors.secondary
+          )};
+        "
+      >
+        ${nodes.join("")}
+      </div>
+    `;
+
+    container.hidden =
+      !boardExpanded;
+
+    setText(
+      "#board-plan-name",
+      currentPlan.name ||
+        "—"
+    );
+
+    setText(
+      "#board-division-name",
+      isBranch
+        ? "Division de branche"
+        : "Table Genesis"
+    );
+
+    setupBoardToggle();
+    bindBoardNames();
+
+    const note =
+      $("#board-note");
+
+    if (note) {
+      note.textContent =
+        "Cliquez sur un nom pour consulter les informations publiques disponibles. Cliquez sur l'en-tête du tableau pour afficher ou masquer la division.";
+    }
+  }
+
+  function renderBoardNode(
+    row,
+    position
+  ) {
+    /*
+     * POSITION VIDE
+     * Aucun texte.
+     */
+    if (!row) {
+      return `
+        <div
+          class="board-node empty"
+          data-position="${position}"
+          aria-label="Position libre"
+        ></div>
+      `;
+    }
+
+    /*
+     * DEMANDE EN ATTENTE
+     */
+    if (
+      !row.membership_id &&
+      row.pending_application_id
+    ) {
+      const username =
+        row.username ||
+        "En attente";
+
+      return `
+        <div
+          class="board-node pending"
+          data-position="${position}"
+        >
+
+          <span class="board-username">
+            ${escapeHtml(
+              username
+            )}
+          </span>
+
+          <span class="board-pending">
+            En attente
+          </span>
+
+        </div>
+      `;
+    }
+
+    /*
+     * MEMBRE ACTIF
+     */
+    if (row.membership_id) {
+      const username =
+        row.username ||
+        "Membre";
+
+      const role =
+        roleLabel(
+          row.member_role
+        );
+
+      const isMe =
+        row.user_id ===
+        viewerUserId;
+
+      /*
+       * Les autres membres sont
+       * cliquables.
+       */
+      if (!isMe) {
+        return `
+          <div
+            class="board-node occupied"
+            data-position="${position}"
+          >
+
+            <button
+              type="button"
+              class="board-username"
+              data-public-profile="${escapeHtml(
+                row.user_id
+              )}"
+            >
+              ${escapeHtml(
+                username
+              )}
+            </button>
+
+            <span class="board-role">
+              ${escapeHtml(
+                role
+              )}
+            </span>
+
+          </div>
+        `;
+      }
+
+      /*
+       * Notre propre position.
+       */
+      return `
+        <div
+          class="
+            board-node
+            occupied
+            current-user
+          "
+          data-position="${position}"
+        >
+
+          <span class="board-username">
+            ${escapeHtml(
+              username
+            )}
+          </span>
+
+          <span class="board-role">
+            ${escapeHtml(
+              role
+            )}
+          </span>
+
+        </div>
+      `;
+    }
+
+    /*
+     * FALLBACK : position vide.
+     */
+    return `
+      <div
+        class="board-node empty"
+        data-position="${position}"
+      ></div>
+    `;
+  }
+
+  function setupBoardToggle() {
+    const info =
+      $("#board-plan-info");
+
+    if (!info) {
+      return;
+    }
+
+    info.setAttribute(
+      "role",
+      "button"
+    );
+
+    info.setAttribute(
+      "tabindex",
+      "0"
+    );
+
+    info.setAttribute(
+      "aria-expanded",
+      boardExpanded
+        ? "true"
+        : "false"
+    );
+
+    if (
+      info.dataset.bound ===
+      "true"
+    ) {
+      return;
+    }
+
+    info.dataset.bound =
+      "true";
+
+    info.style.cursor =
+      "pointer";
+
+    info.addEventListener(
+      "click",
+      () => {
+        toggleBoard();
+      }
+    );
+
+    info.addEventListener(
+      "keydown",
+      (event) => {
+        if (
+          event.key ===
+            "Enter" ||
+          event.key ===
+            " "
+        ) {
+          event.preventDefault();
+          toggleBoard();
+        }
+      }
+    );
+  }
+
+  function toggleBoard() {
+    if (
+      !currentMembership ||
+      !currentBoard.length
+    ) {
+      return;
+    }
+
+    boardExpanded =
+      !boardExpanded;
+
+    const container =
+      $("#board-container");
+
+    if (container) {
+      container.hidden =
+        !boardExpanded;
+    }
+
+    const info =
+      $("#board-plan-info");
+
+    if (info) {
+      info.setAttribute(
+        "aria-expanded",
+        boardExpanded
+          ? "true"
+          : "false"
+      );
+    }
+  }
+
+  function renderNoBoard() {
+    const container =
+      $("#board-container");
+
+    if (!container) {
+      return;
+    }
+
+    setText(
+      "#board-plan-name",
+      "Aucun tableau actif"
+    );
+
+    setText(
+      "#board-division-name",
+      "—"
+    );
+
+    const note =
+      $("#board-note");
+
+    if (note) {
+      note.textContent =
+        "Votre tableau apparaîtra ici après votre entrée et sa validation.";
+    }
+
+    /*
+     * Si une demande est déjà en attente,
+     * on n'affiche pas une deuxième invitation.
+     */
+    if (pendingApplication) {
+      container.hidden = false;
+
+      container.innerHTML = `
+        <div class="join-table-card">
+
+          <div class="join-table-icon">
+            ⏳
+          </div>
+
+          <div>
+
+            <h3>
+              Demande en attente
+            </h3>
+
+            <p>
+              Votre demande attend l'approbation
+              de la Légende responsable.
+            </p>
+
+          </div>
+
+        </div>
+      `;
+
+      return;
+    }
+
+    container.hidden = false;
+
+    container.innerHTML = `
+      <div class="join-table-card">
+
+        <div class="join-table-icon">
+          +
+        </div>
+
+        <div>
+
+          <h3>
+            Rejoindre le premier tableau
+          </h3>
+
+          <p>
+            Envoyez votre demande à la
+            Légende. Vous entrerez uniquement
+            après son approbation.
+          </p>
+
+          <span>
+            Niveau V$1
+          </span>
+
+        </div>
+
+        <button
+          type="button"
+          id="apply-first-plan-button"
+          class="primary-button"
+        >
+          Demander à entrer
+        </button>
+
+      </div>
+    `;
+
+    $("#apply-first-plan-button")
+      ?.addEventListener(
+        "click",
+        applyToFirstPlan
+      );
   }
 
   /* =========================================================
@@ -1383,7 +1401,7 @@
   }
 
   /* =========================================================
-     DEMANDE SUIVANTE
+     DEMANDE PERSONNELLE EN ATTENTE
   ========================================================= */
 
   async function loadPendingApplication() {
@@ -1455,16 +1473,14 @@
     const content =
       $("#pending-content");
 
-    if (
-      !section ||
-      !content
-    ) {
+    if (!section || !content) {
       return;
     }
 
     /*
-     * Si la personne est déjà membre,
-     * sa demande n'est plus affichée.
+     * Une personne déjà membre
+     * n'a plus besoin de voir
+     * son ancienne demande.
      */
     if (
       currentMembership ||
@@ -1517,7 +1533,7 @@
   }
 
   /* =========================================================
-     DEMANDES POUR LA LÉGENDE
+     DEMANDES À APPROUVER
   ========================================================= */
 
   async function loadLegendApplications() {
@@ -1564,10 +1580,7 @@
     const list =
       $("#approval-list");
 
-    if (
-      !section ||
-      !list
-    ) {
+    if (!section || !list) {
       return;
     }
 
@@ -1604,6 +1617,21 @@
                 <strong>
                   Nouvelle demande
                 </strong>
+
+                ${
+                  application.username
+                    ? `
+                      <p>
+                        Utilisateur :
+                        <strong>
+                          ${escapeHtml(
+                            application.username
+                          )}
+                        </strong>
+                      </p>
+                    `
+                    : ""
+                }
 
                 <p>
                   Position :
@@ -1711,7 +1739,7 @@
   }
 
   /* =========================================================
-     PROGRESSION
+     PROGRESSION DE SIMULATION
   ========================================================= */
 
   async function recordSimulationProgress() {
@@ -1759,8 +1787,28 @@
   }
 
   /* =========================================================
-     PROFIL PUBLIC
+     PROFILS PUBLICS DU TABLEAU
   ========================================================= */
+
+  function bindBoardNames() {
+    document
+      .querySelectorAll(
+        "[data-public-profile]"
+      )
+      .forEach(
+        (button) => {
+          button.addEventListener(
+            "click",
+            () => {
+              openPublicProfile(
+                button.dataset
+                  .publicProfile
+              );
+            }
+          );
+        }
+      );
+  }
 
   async function openPublicProfile(
     userId
@@ -1958,12 +2006,22 @@
                     "Lien copié.",
                     "success"
                   );
-                } catch {}
+                } catch {
+                  notify(
+                    "Impossible de copier le lien.",
+                    "error"
+                  );
+                }
               };
           }
         );
 
-    } catch {}
+    } catch (error) {
+      console.error(
+        "Referral:",
+        error
+      );
+    }
   }
 
   /* =========================================================
@@ -1971,16 +2029,35 @@
   ========================================================= */
 
   function setupLogout() {
-    $(
-      "#logout-button"
-    )?.addEventListener(
+    const button =
+      $("#logout-button");
+
+    if (!button) {
+      return;
+    }
+
+    if (
+      button.dataset.bound ===
+      "true"
+    ) {
+      return;
+    }
+
+    button.dataset.bound =
+      "true";
+
+    button.addEventListener(
       "click",
       async () => {
-        await supabase.auth.signOut();
+        button.disabled = true;
 
-        window.location.replace(
-          "index.html"
-        );
+        try {
+          await supabase.auth.signOut();
+        } finally {
+          window.location.replace(
+            "index.html"
+          );
+        }
       }
     );
   }
@@ -1992,6 +2069,16 @@
       )
       .forEach(
         (button) => {
+          if (
+            button.dataset.bound ===
+            "true"
+          ) {
+            return;
+          }
+
+          button.dataset.bound =
+            "true";
+
           button.addEventListener(
             "click",
             refreshDashboard
@@ -2017,7 +2104,7 @@
   }
 
   /* =========================================================
-     REFRESH
+     REFRESH COMPLET
   ========================================================= */
 
   async function refreshDashboard() {
@@ -2026,27 +2113,57 @@
     );
 
     try {
+      /*
+       * 1. Session
+       * 2. Profil
+       * 3. Plans
+       * 4. Contexte complet
+       * 5. Demandes
+       */
+      const {
+        data: {
+          session
+        }
+      } =
+        await supabase.auth.getSession();
+
+      if (!session?.user) {
+        window.location.replace(
+          "index.html"
+        );
+
+        return;
+      }
+
+      currentUser =
+        session.user;
+
       await loadProfile();
+
       await loadPlans();
+
+      await loadDashboardContext();
+
       await loadPendingApplication();
-      await loadCurrentBoard();
 
       /*
-       * Seulement un utilisateur
-       * sans membership peut demander
-       * le premier tableau.
+       * Si l'utilisateur n'a pas encore
+       * de membership, on affiche soit
+       * la demande en attente, soit
+       * l'invitation.
        */
       if (
-        !currentMembership &&
-        !pendingApplication
+        !currentMembership
       ) {
         renderNoBoard();
       }
 
       await loadLegendApplications();
+
       await loadReferral();
 
       renderPlans();
+      renderCurrentPlan();
       renderPendingApplication();
 
       setupPublicProfile();
@@ -2058,11 +2175,17 @@
       showApp();
 
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Dashboard error:",
+        error
+      );
 
       if (
-        error?.message ===
-        "PROFILE_NOT_FOUND"
+        String(
+          error?.message || ""
+        ).includes(
+          "PROFILE_NOT_FOUND"
+        )
       ) {
         await supabase.auth.signOut();
 
@@ -2084,7 +2207,7 @@
   }
 
   /* =========================================================
-     INIT
+     INITIALISATION
   ========================================================= */
 
   async function init() {
@@ -2095,11 +2218,13 @@
         "Supabase introuvable."
       );
 
+      hideLoading();
+
       return;
     }
 
     showLoading(
-      "Chargement..."
+      "Chargement de votre espace..."
     );
 
     try {
@@ -2122,28 +2247,23 @@
         session.user;
 
       /*
-       * 1. Profil
-       * 2. user_id réel du profil
-       * 3. Plans
-       * 4. Tableau
+       * NOUVEAU FLUX :
+       *
+       * Le backend nous donne directement
+       * le membership actif + le plan actif
+       * + le tableau complet.
        */
+
       await loadProfile();
 
       await loadPlans();
 
+      await loadDashboardContext();
+
       await loadPendingApplication();
 
-      await loadCurrentBoard();
-
-      /*
-       * IMPORTANT :
-       * Genesis a déjà un membership.
-       * Donc cette section ne doit jamais
-       * apparaître pour Genesis.
-       */
       if (
-        !currentMembership &&
-        !pendingApplication
+        !currentMembership
       ) {
         renderNoBoard();
       }
@@ -2153,6 +2273,7 @@
       await loadReferral();
 
       renderPlans();
+      renderCurrentPlan();
       renderPendingApplication();
 
       setupPublicProfile();
@@ -2190,6 +2311,10 @@
       hideLoading();
     }
   }
+
+  /* =========================================================
+     API PUBLIQUE
+  ========================================================= */
 
   window.VG_APP = {
     refresh:
