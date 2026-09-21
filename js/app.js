@@ -5,6 +5,7 @@
 
   let currentUser = null;
   let currentProfile = null;
+  let viewerUserId = null;
 
   let visiblePlans = [];
   let currentPlan = null;
@@ -17,8 +18,8 @@
   let pendingApplication = null;
   let legendApplications = [];
 
-  let countdownTimer = null;
   let boardExpanded = false;
+  let countdownTimer = null;
 
   const $ = (selector) =>
     document.querySelector(selector);
@@ -29,7 +30,9 @@
 
   function escapeHtml(value) {
     if (window.VG_UI?.escapeHtml) {
-      return window.VG_UI.escapeHtml(value ?? "");
+      return window.VG_UI.escapeHtml(
+        value ?? ""
+      );
     }
 
     return String(value ?? "")
@@ -53,10 +56,15 @@
 
     const number = Number(value);
 
-    return `V$${new Intl.NumberFormat("fr-FR", {
-      maximumFractionDigits: 2
-    }).format(
-      Number.isFinite(number) ? number : 0
+    return `V$${new Intl.NumberFormat(
+      "fr-FR",
+      {
+        maximumFractionDigits: 2
+      }
+    ).format(
+      Number.isFinite(number)
+        ? number
+        : 0
     )}`;
   }
 
@@ -67,99 +75,80 @@
       return window.VG_UI.formatDate(value);
     }
 
-    const parsed = new Date(value);
+    const date = new Date(value);
 
-    if (Number.isNaN(parsed.getTime())) {
+    if (Number.isNaN(date.getTime())) {
       return "—";
     }
 
-    return new Intl.DateTimeFormat("fr-FR", {
-      dateStyle: "medium",
-      timeStyle: "short"
-    }).format(parsed);
+    return new Intl.DateTimeFormat(
+      "fr-FR",
+      {
+        dateStyle: "medium",
+        timeStyle: "short"
+      }
+    ).format(date);
   }
 
-  function formatCountdown(value) {
+  function countdown(value) {
     if (!value) return "—";
 
-    const target = new Date(value).getTime();
+    const target =
+      new Date(value).getTime();
 
-    if (!Number.isFinite(target)) {
-      return "—";
-    }
+    const remaining =
+      target - Date.now();
 
-    const remaining = target - Date.now();
-
-    if (remaining <= 0) {
+    if (
+      !Number.isFinite(remaining) ||
+      remaining <= 0
+    ) {
       return "Expirée";
     }
 
     const totalSeconds =
-      Math.floor(remaining / 1000);
+      Math.floor(
+        remaining / 1000
+      );
 
     const minutes =
-      Math.floor(totalSeconds / 60);
+      Math.floor(
+        totalSeconds / 60
+      );
 
     const seconds =
       totalSeconds % 60;
 
-    return `${minutes} min ${String(seconds).padStart(2, "0")} s`;
+    return `${minutes} min ${String(
+      seconds
+    ).padStart(2, "0")} s`;
   }
 
-  function notify(message, type = "info") {
+  function notify(
+    message,
+    type = "info"
+  ) {
     if (window.VG_UI?.notify) {
-      window.VG_UI.notify(message, type);
+      window.VG_UI.notify(
+        message,
+        type
+      );
       return;
     }
 
     alert(message);
   }
 
-  function setText(selector, value) {
-    const element = $(selector);
+  function setText(
+    selector,
+    value
+  ) {
+    const element =
+      $(selector);
 
     if (element) {
-      element.textContent = value ?? "";
-    }
-  }
-
-  function showLoading(message) {
-    const loading = $("#dashboard-loading");
-
-    if (!loading) return;
-
-    loading.hidden = false;
-
-    const text =
-      $("#dashboard-loading-text");
-
-    if (text) {
-      text.textContent = message;
-    }
-  }
-
-  function hideLoading() {
-    const loading =
-      $("#dashboard-loading");
-
-    if (loading) {
-      loading.hidden = true;
-    }
-  }
-
-  function showApp() {
-    const app = $("#app");
-
-    if (app) {
-      app.hidden = false;
-    }
-  }
-
-  function hideApp() {
-    const app = $("#app");
-
-    if (app) {
-      app.hidden = true;
+      element.textContent =
+        value ?? "";
     }
   }
 
@@ -175,6 +164,50 @@
     return "Membre";
   }
 
+  function showLoading(message) {
+    const loading =
+      $("#dashboard-loading");
+
+    if (!loading) return;
+
+    loading.hidden = false;
+
+    const text =
+      $("#dashboard-loading-text");
+
+    if (text) {
+      text.textContent =
+        message;
+    }
+  }
+
+  function hideLoading() {
+    const loading =
+      $("#dashboard-loading");
+
+    if (loading) {
+      loading.hidden = true;
+    }
+  }
+
+  function showApp() {
+    const app =
+      $("#app");
+
+    if (app) {
+      app.hidden = false;
+    }
+  }
+
+  function hideApp() {
+    const app =
+      $("#app");
+
+    if (app) {
+      app.hidden = true;
+    }
+  }
+
   function errorMessage(error) {
     const raw = String(
       error?.message ||
@@ -183,7 +216,7 @@
       "Une erreur est survenue."
     );
 
-    const message =
+    const text =
       raw.toLowerCase();
 
     const translations = [
@@ -200,16 +233,8 @@
         "Ce niveau n'est pas encore accessible."
       ],
       [
-        "already has an active membership",
+        "already has",
         "Vous avez déjà une inscription active."
-      ],
-      [
-        "already has a plan",
-        "Vous avez déjà une inscription dans un niveau."
-      ],
-      [
-        "application unavailable",
-        "Cette demande n'est plus disponible."
       ],
       [
         "target slot is occupied",
@@ -220,24 +245,12 @@
         "Seule la Légende du tableau peut approuver cette demande."
       ],
       [
-        "self approval",
-        "Vous ne pouvez pas approuver votre propre demande."
-      ],
-      [
         "first plan table is full",
         "Le premier tableau est complet."
       ],
       [
-        "first plan unavailable",
-        "Le premier niveau n'est pas disponible actuellement."
-      ],
-      [
         "no next plan",
         "Aucun niveau supérieur n'est actuellement disponible."
-      ],
-      [
-        "no active branch",
-        "Aucune branche active n'est actuellement disponible."
       ],
       [
         "active legend not found",
@@ -245,8 +258,15 @@
       ]
     ];
 
-    for (const [needle, translation] of translations) {
-      if (message.includes(needle)) {
+    for (
+      const [
+        search,
+        translation
+      ] of translations
+    ) {
+      if (
+        text.includes(search)
+      ) {
         return translation;
       }
     }
@@ -270,13 +290,26 @@
       throw error;
     }
 
-    currentProfile = firstRow(data);
+    currentProfile =
+      firstRow(data);
 
     if (!currentProfile) {
       throw new Error(
         "PROFILE_NOT_FOUND"
       );
     }
+
+    /*
+     * IMPORTANT :
+     * Le backend renvoie user_id.
+     * On utilise celui-ci comme référence
+     * principale au lieu de dépendre uniquement
+     * de session.user.id.
+     */
+    viewerUserId =
+      currentProfile.user_id ||
+      currentUser?.id ||
+      null;
 
     renderProfile();
   }
@@ -288,7 +321,8 @@
 
     setText(
       "#profile-username",
-      currentProfile.username || "—"
+      currentProfile.username ||
+        "—"
     );
 
     setText(
@@ -318,7 +352,8 @@
     if (avatar) {
       avatar.textContent =
         String(
-          currentProfile.username || "V"
+          currentProfile.username ||
+          "V"
         )
           .charAt(0)
           .toUpperCase();
@@ -345,8 +380,12 @@
       Array.isArray(data)
         ? [...data].sort(
             (a, b) =>
-              Number(a.sequence_no) -
-              Number(b.sequence_no)
+              Number(
+                a.sequence_no
+              ) -
+              Number(
+                b.sequence_no
+              )
           )
         : [];
 
@@ -365,6 +404,24 @@
     };
   }
 
+  function getNextPlan() {
+    if (!currentPlan) {
+      return null;
+    }
+
+    return (
+      visiblePlans.find(
+        (plan) =>
+          Number(
+            plan.sequence_no
+          ) ===
+          Number(
+            currentPlan.sequence_no
+          ) + 1
+      ) || null
+    );
+  }
+
   function applyPlanColors(plan) {
     const colors =
       getPlanColors(plan);
@@ -377,35 +434,6 @@
     document.documentElement.style.setProperty(
       "--plan-secondary",
       colors.secondary
-    );
-
-    const board =
-      $("#board-container");
-
-    if (board) {
-      board.style.setProperty(
-        "--board-primary",
-        colors.primary
-      );
-
-      board.style.setProperty(
-        "--board-secondary",
-        colors.secondary
-      );
-    }
-  }
-
-  function getNextPlan() {
-    if (!currentPlan) {
-      return null;
-    }
-
-    return (
-      visiblePlans.find(
-        (plan) =>
-          Number(plan.sequence_no) ===
-          Number(currentPlan.sequence_no) + 1
-      ) || null
     );
   }
 
@@ -433,33 +461,24 @@
     container.innerHTML =
       visiblePlans
         .map((plan) => {
-          const colors =
-            getPlanColors(plan);
-
           const isCurrent =
-            currentPlan?.id === plan.id;
+            currentPlan?.id ===
+            plan.id;
 
           const isNext =
-            nextPlan?.id === plan.id;
+            nextPlan?.id ===
+            plan.id;
 
-          const isLocked =
-            isNext && !isCurrent;
+          const colors =
+            getPlanColors(plan);
 
           return `
             <article
               class="
                 plan-card
                 ${isCurrent ? "active" : ""}
-                ${isLocked ? "locked" : ""}
+                ${isNext ? "locked" : ""}
               "
-              data-plan-id="${escapeHtml(
-                plan.id
-              )}"
-              ${
-                isLocked
-                  ? 'aria-disabled="true"'
-                  : ""
-              }
               style="
                 --card-primary:${escapeHtml(
                   colors.primary
@@ -473,21 +492,20 @@
               <div class="plan-card-header">
 
                 <div>
-
                   <h3>
                     ${escapeHtml(
                       plan.name ||
-                        "Niveau"
+                      "Niveau"
                     )}
                   </h3>
 
                   <span>
                     Niveau
                     ${Number(
-                      plan.sequence_no || 0
+                      plan.sequence_no ||
+                      0
                     )}
                   </span>
-
                 </div>
 
                 <strong class="plan-points">
@@ -505,7 +523,7 @@
                   <strong>
                     ${Number(
                       plan.required_progress ||
-                        0
+                      0
                     )}
                   </strong>
                 </p>
@@ -517,7 +535,7 @@
                         Niveau actuel
                       </div>
                     `
-                    : isLocked
+                    : isNext
                     ? `
                       <div class="plan-status locked">
                         🔒 Prochain niveau
@@ -542,10 +560,12 @@
      TABLEAU
   ========================================================= */
 
-  function findActiveMembership(board) {
+  function findActiveMembership(
+    board
+  ) {
     if (
       !Array.isArray(board) ||
-      !currentUser
+      !viewerUserId
     ) {
       return null;
     }
@@ -554,28 +574,10 @@
       board.find(
         (row) =>
           row.user_id ===
-            currentUser.id &&
+            viewerUserId &&
           row.membership_id &&
           row.membership_status ===
             "active"
-      ) || null
-    );
-  }
-
-  function findPendingForCurrentUser(board) {
-    if (
-      !Array.isArray(board) ||
-      !currentUser
-    ) {
-      return null;
-    }
-
-    return (
-      board.find(
-        (row) =>
-          row.user_id ===
-            currentUser.id &&
-          row.pending_application_id
       ) || null
     );
   }
@@ -585,17 +587,24 @@
     currentBoard = [];
     currentMembership = null;
 
+    /*
+     * On cherche d'abord le tableau
+     * auquel l'utilisateur appartient.
+     */
     const plans =
       [...visiblePlans].sort(
         (a, b) =>
-          Number(b.sequence_no) -
-          Number(a.sequence_no)
+          Number(
+            b.sequence_no
+          ) -
+          Number(
+            a.sequence_no
+          )
       );
 
-    let pendingBoard = null;
-    let pendingPlan = null;
-
-    for (const plan of plans) {
+    for (
+      const plan of plans
+    ) {
       try {
         const {
           data,
@@ -608,12 +617,6 @@
           }
         );
 
-        /*
-         * Le RPC refuse volontairement
-         * les plans supérieurs au niveau
-         * actuel. C'est normal pour le
-         * prochain plan verrouillé.
-         */
         if (error) {
           continue;
         }
@@ -627,39 +630,25 @@
           continue;
         }
 
-        const activeMembership =
+        const membership =
           findActiveMembership(
             board
           );
 
         /*
-         * PRIORITÉ ABSOLUE :
-         * une personne déjà dans un tableau
-         * doit toujours voir ce tableau.
+         * TROUVE !
          */
-        if (activeMembership) {
-          currentPlan = plan;
-          currentBoard = board;
-          currentMembership =
-            activeMembership;
+        if (membership) {
+          currentPlan =
+            plan;
 
-          break;
-        }
-
-        const pending =
-          findPendingForCurrentUser(
-            board
-          );
-
-        if (
-          pending &&
-          !pendingBoard
-        ) {
-          pendingBoard =
+          currentBoard =
             board;
 
-          pendingPlan =
-            plan;
+          currentMembership =
+            membership;
+
+          break;
         }
 
       } catch (error) {
@@ -671,42 +660,15 @@
     }
 
     /*
-     * Demande en attente.
-     */
-    if (
-      !currentPlan &&
-      pendingBoard
-    ) {
-      currentPlan =
-        pendingPlan;
-
-      currentBoard =
-        pendingBoard;
-
-      currentMembership =
-        null;
-
-      boardExpanded = false;
-
-      applyPlanColors(
-        currentPlan
-      );
-
-      renderBoard();
-      renderCurrentPlan();
-
-      return;
-    }
-
-    /*
-     * Aucun tableau.
+     * Si aucun tableau n'est trouvé,
+     * alors seulement on considère
+     * l'utilisateur comme sans tableau.
      */
     if (!currentPlan) {
       currentBoard = [];
-      currentMembership =
-        null;
+      currentMembership = null;
 
-      renderEmptyBoard();
+      renderNoBoard();
 
       return;
     }
@@ -715,22 +677,13 @@
       currentPlan
     );
 
-    calculateProgressFromBoard();
+    calculateProgress();
 
     renderCurrentPlan();
     renderBoard();
   }
 
-  /*
-   * Progression :
-   *
-   * Genesis :
-   * positions 2 → 9 = 8 positions.
-   *
-   * Branch :
-   * positions 5 → 12 = 8 positions.
-   */
-  function calculateProgressFromBoard() {
+  function calculateProgress() {
     if (!currentPlan) {
       currentProgress = 0;
       requiredProgress = 0;
@@ -740,23 +693,23 @@
     requiredProgress =
       Number(
         currentPlan.required_progress ||
-          8
+        8
       );
 
-    if (!Array.isArray(currentBoard)) {
-      currentProgress = 0;
-      return;
-    }
-
-    const isBranch =
+    /*
+     * Genesis = positions 2 à 9.
+     * Branch = positions 5 à 12.
+     */
+    const branch =
       currentBoard.some(
         (row) =>
-          Number(row.position_no) >=
-          12
+          Number(
+            row.position_no
+          ) >= 12
       );
 
-    const firstProgressPosition =
-      isBranch ? 5 : 2;
+    const firstPosition =
+      branch ? 5 : 2;
 
     currentProgress =
       currentBoard.filter(
@@ -764,8 +717,9 @@
           row.membership_id &&
           row.membership_status ===
             "active" &&
-          Number(row.position_no) >=
-            firstProgressPosition
+          Number(
+            row.position_no
+          ) >= firstPosition
       ).length;
 
     currentProgress =
@@ -785,10 +739,9 @@
 
     if (
       !currentPlan ||
-      !Array.isArray(currentBoard) ||
       !currentBoard.length
     ) {
-      renderEmptyBoard();
+      renderNoBoard();
       return;
     }
 
@@ -798,20 +751,24 @@
     currentBoard.forEach(
       (row) => {
         positions.set(
-          Number(row.position_no),
+          Number(
+            row.position_no
+          ),
           row
         );
       }
     );
 
-    const maxPosition =
+    const isBranch =
       currentBoard.some(
         (row) =>
-          Number(row.position_no) >=
-          12
-      )
-        ? 12
-        : 9;
+          Number(
+            row.position_no
+          ) >= 12
+      );
+
+    const maxPosition =
+      isBranch ? 12 : 9;
 
     const colors =
       getPlanColors(
@@ -854,24 +811,11 @@
     container.hidden =
       !boardExpanded;
 
-    if (boardExpanded) {
-      container.classList.add(
-        "board-is-open"
-      );
-    } else {
-      container.classList.remove(
-        "board-is-open"
-      );
-    }
-
     setText(
       "#board-plan-name",
       currentPlan.name ||
         "—"
     );
-
-    const isBranch =
-      maxPosition >= 12;
 
     setText(
       "#board-division-name",
@@ -880,7 +824,7 @@
         : "Table Genesis"
     );
 
-    bindBoardProfileButtons();
+    bindBoardNames();
     setupBoardToggle();
   }
 
@@ -889,15 +833,15 @@
     position
   ) {
     /*
-     * POSITION VIDE :
-     * absolument rien dedans.
+     * IMPORTANT :
+     * Une position vide ne contient
+     * absolument aucun texte.
      */
     if (!row) {
       return `
         <div
           class="board-node empty"
           data-position="${position}"
-          aria-label="Position libre"
         ></div>
       `;
     }
@@ -905,21 +849,13 @@
     /*
      * DEMANDE EN ATTENTE
      */
-    const isPending =
+    if (
       !row.membership_id &&
-      Boolean(
-        row.pending_application_id
-      );
-
-    if (isPending) {
+      row.pending_application_id
+    ) {
       const username =
         row.username ||
-        (
-          row.user_id ===
-          currentUser?.id
-            ? "Vous"
-            : "En attente"
-        );
+        "En attente";
 
       return `
         <div
@@ -947,26 +883,18 @@
     if (row.membership_id) {
       const username =
         row.username ||
-        (
-          row.user_id ===
-          currentUser?.id
-            ? "Vous"
-            : "Membre"
-        );
+        "Membre";
 
       const role =
         roleLabel(
           row.member_role
         );
 
-      const isCurrentUser =
+      const isMe =
         row.user_id ===
-        currentUser?.id;
+        viewerUserId;
 
-      if (
-        !isCurrentUser &&
-        row.user_id
-      ) {
+      if (!isMe) {
         return `
           <div
             class="board-node occupied"
@@ -979,7 +907,6 @@
               data-public-profile="${escapeHtml(
                 row.user_id
               )}"
-              title="Voir le numéro de téléphone"
             >
               ${escapeHtml(
                 username
@@ -998,7 +925,11 @@
 
       return `
         <div
-          class="board-node occupied current-user"
+          class="
+            board-node
+            occupied
+            current-user
+          "
           data-position="${position}"
         >
 
@@ -1018,41 +949,24 @@
       `;
     }
 
-    /*
-     * Une ligne sans membre ni demande
-     * reste un cercle vide.
-     */
     return `
       <div
         class="board-node empty"
         data-position="${position}"
-        aria-label="Position libre"
       ></div>
     `;
   }
 
-  function bindBoardProfileButtons() {
+  function bindBoardNames() {
     document
       .querySelectorAll(
         "[data-public-profile]"
       )
       .forEach(
         (button) => {
-          if (
-            button.dataset.bound ===
-            "true"
-          ) {
-            return;
-          }
-
-          button.dataset.bound =
-            "true";
-
           button.addEventListener(
             "click",
-            (event) => {
-              event.stopPropagation();
-
+            () => {
               openPublicProfile(
                 button.dataset
                   .publicProfile
@@ -1081,56 +995,20 @@
     info.dataset.bound =
       "true";
 
-    info.setAttribute(
-      "role",
-      "button"
-    );
-
-    info.setAttribute(
-      "tabindex",
-      "0"
-    );
-
-    info.setAttribute(
-      "aria-expanded",
-      boardExpanded
-        ? "true"
-        : "false"
-    );
+    info.style.cursor =
+      "pointer";
 
     info.addEventListener(
       "click",
-      (event) => {
-        if (
-          event.target.closest(
-            "button"
-          )
-        ) {
-          return;
-        }
-
+      () => {
         toggleBoard();
-      }
-    );
-
-    info.addEventListener(
-      "keydown",
-      (event) => {
-        if (
-          event.key ===
-            "Enter" ||
-          event.key ===
-            " "
-        ) {
-          event.preventDefault();
-          toggleBoard();
-        }
       }
     );
   }
 
   function toggleBoard() {
     if (
+      !currentMembership ||
       !currentBoard.length
     ) {
       return;
@@ -1145,11 +1023,6 @@
     if (container) {
       container.hidden =
         !boardExpanded;
-
-      container.classList.toggle(
-        "board-is-open",
-        boardExpanded
-      );
     }
 
     const info =
@@ -1165,21 +1038,13 @@
     }
   }
 
-  function renderEmptyBoard() {
+  function renderNoBoard() {
     const container =
       $("#board-container");
 
     if (!container) {
       return;
     }
-
-    container.hidden = false;
-
-    container.innerHTML = `
-      <div class="empty-state">
-        Aucun tableau actif à afficher.
-      </div>
-    `;
 
     setText(
       "#board-plan-name",
@@ -1190,6 +1055,60 @@
       "#board-division-name",
       "—"
     );
+
+    /*
+     * Si Genesis ou un autre membre
+     * possède réellement un membership,
+     * cette fonction ne doit jamais être appelée.
+     */
+    if (currentMembership) {
+      return;
+    }
+
+    container.hidden = false;
+
+    container.innerHTML = `
+      <div class="join-table-card">
+
+        <div class="join-table-icon">
+          +
+        </div>
+
+        <div>
+
+          <h3>
+            Rejoindre le premier tableau
+          </h3>
+
+          <p>
+            Envoyez votre demande à la
+            Légende. Vous entrerez uniquement
+            après son approbation.
+          </p>
+
+          <span>
+            Niveau V$1
+          </span>
+
+        </div>
+
+        <button
+          type="button"
+          id="apply-first-plan-button"
+          class="primary-button"
+        >
+          Demander à entrer
+        </button>
+
+      </div>
+    `;
+
+    $(
+      "#apply-first-plan-button"
+    )?.addEventListener(
+      "click",
+      applyToFirstPlan
+    );
   }
 
   /* =========================================================
@@ -1198,56 +1117,28 @@
 
   function renderCurrentPlan() {
     if (!currentPlan) {
-      setText(
-        "#current-plan-name",
-        "—"
-      );
-
-      setText(
-        "#current-plan-points",
-        "V$0"
-      );
-
-      setText(
-        "#progress-value",
-        "0 / 0"
-      );
-
-      setText(
-        "#progress-count",
-        "0"
-      );
-
-      setText(
-        "#required-progress",
-        "0"
-      );
-
       return;
     }
 
-    requiredProgress =
+    const required =
       Number(
         currentPlan.required_progress ||
-          8
+        8
       );
 
     const progress =
       Math.min(
         currentProgress,
-        requiredProgress
+        required
       );
 
     const percentage =
-      requiredProgress > 0
-        ? Math.min(
-            100,
-            Math.round(
-              (
-                progress /
-                requiredProgress
-              ) * 100
-            )
+      required > 0
+        ? Math.round(
+            (
+              progress /
+              required
+            ) * 100
           )
         : 0;
 
@@ -1266,7 +1157,7 @@
 
     setText(
       "#progress-value",
-      `${progress} / ${requiredProgress}`
+      `${progress} / ${required}`
     );
 
     setText(
@@ -1276,14 +1167,12 @@
 
     setText(
       "#required-progress",
-      String(
-        requiredProgress
-      )
+      String(required)
     );
 
     document
       .querySelectorAll(
-        ".progress-fill,[data-progress-fill]"
+        "[data-progress-fill]"
       )
       .forEach(
         (element) => {
@@ -1303,11 +1192,11 @@
         }
       );
 
-    renderSimulationArea();
     renderNextPlan();
+    renderSimulationProgress();
   }
 
-  function renderSimulationArea() {
+  function renderSimulationProgress() {
     const area =
       $("#simulation-progress-area");
 
@@ -1316,16 +1205,10 @@
     }
 
     const role =
-      currentMembership?.member_role ||
-      currentProfile?.role;
+      currentMembership?.member_role;
 
-    /*
-     * Seule la Légende contrôle
-     * la progression de sa division.
-     */
     if (
-      role !== "legend" ||
-      !currentMembership
+      role !== "legend"
     ) {
       area.hidden = true;
       area.innerHTML = "";
@@ -1342,7 +1225,6 @@
       <div class="simulation-progress-card">
 
         <div>
-
           <strong>
             Progression de simulation
           </strong>
@@ -1351,13 +1233,7 @@
             ${currentProgress}
             /
             ${requiredProgress}
-            progression${
-              requiredProgress > 1
-                ? "s"
-                : ""
-            }
           </p>
-
         </div>
 
         <button
@@ -1380,52 +1256,30 @@
       </div>
     `;
 
-    const button =
-      $("#simulation-progress-button");
-
-    if (button) {
-      button.addEventListener(
-        "click",
-        recordSimulationProgress
-      );
-    }
+    $(
+      "#simulation-progress-button"
+    )?.addEventListener(
+      "click",
+      recordSimulationProgress
+    );
   }
 
-  /*
-   * Le prochain niveau est visible,
-   * mais jamais directement accessible.
-   */
   function renderNextPlan() {
     const section =
       $("#next-plan-section");
 
-    const container =
+    const area =
       $("#next-plan-area");
 
-    if (
-      !section ||
-      !container
-    ) {
+    if (!section || !area) {
       return;
     }
 
-    if (!currentPlan) {
-      section.hidden = true;
-      return;
-    }
-
-    const nextPlan =
+    const next =
       getNextPlan();
 
-    if (!nextPlan) {
-      section.hidden = false;
-
-      container.innerHTML = `
-        <div class="empty-state">
-          Vous êtes actuellement au dernier niveau disponible.
-        </div>
-      `;
-
+    if (!next) {
+      section.hidden = true;
       return;
     }
 
@@ -1435,20 +1289,8 @@
       currentProgress >=
       requiredProgress;
 
-    container.innerHTML = `
-      <div
-        class="next-plan-card locked"
-        style="
-          --next-primary:${escapeHtml(
-            nextPlan.color_primary ||
-              "#d4af37"
-          )};
-          --next-secondary:${escapeHtml(
-            nextPlan.color_secondary ||
-              "#8f6b1f"
-          )};
-        "
-      >
+    area.innerHTML = `
+      <div class="next-plan-card locked">
 
         <div class="next-plan-lock">
           🔒
@@ -1462,21 +1304,21 @@
 
           <strong>
             ${escapeHtml(
-              nextPlan.name
+              next.name
             )}
           </strong>
 
           <span>
             ${points(
-              nextPlan.plan_points
+              next.plan_points
             )}
           </span>
 
           <p>
             ${
               complete
-                ? "Votre progression est terminée. L'accès au niveau suivant suit le processus de validation prévu."
-                : "Ce niveau est verrouillé. Terminez d'abord les conditions de votre niveau actuel."
+                ? "Votre progression est terminée. L'accès suit le processus de validation prévu."
+                : "Ce niveau reste verrouillé jusqu'à la fin des conditions du niveau actuel."
             }
           </p>
 
@@ -1485,7 +1327,7 @@
         <span class="next-plan-status">
           ${
             complete
-              ? "En attente du processus d'accès"
+              ? "Processus d'accès"
               : "Accès verrouillé"
           }
         </span>
@@ -1495,13 +1337,59 @@
   }
 
   /* =========================================================
-     DEMANDE PERSONNELLE
+     DEMANDE PREMIER TABLEAU
   ========================================================= */
 
-  async function loadMyPendingApplication() {
+  async function applyToFirstPlan() {
+    const button =
+      $("#apply-first-plan-button");
+
+    if (button) {
+      button.disabled = true;
+      button.textContent =
+        "Envoi...";
+    }
+
+    try {
+      const {
+        error
+      } = await supabase.rpc(
+        "vg_apply_to_first_plan"
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      notify(
+        "Votre demande a été envoyée à la Légende.",
+        "success"
+      );
+
+      await refreshDashboard();
+
+    } catch (error) {
+      notify(
+        errorMessage(error),
+        "error"
+      );
+
+      if (button) {
+        button.disabled = false;
+        button.textContent =
+          "Demander à entrer";
+      }
+    }
+  }
+
+  /* =========================================================
+     DEMANDE SUIVANTE
+  ========================================================= */
+
+  async function loadPendingApplication() {
     pendingApplication = null;
 
-    if (!currentUser) {
+    if (!viewerUserId) {
       return;
     }
 
@@ -1516,7 +1404,6 @@
           user_id,
           target_plan_id,
           target_cycle_id,
-          target_slot_id,
           target_position_no,
           status,
           expires_at,
@@ -1524,7 +1411,7 @@
         `)
         .eq(
           "user_id",
-          currentUser.id
+          viewerUserId
         )
         .eq(
           "status",
@@ -1542,16 +1429,8 @@
         )
         .limit(1);
 
-      if (error) {
-        console.error(
-          "Application:",
-          error
-        );
-
-        return;
-      }
-
       if (
+        !error &&
         Array.isArray(data) &&
         data.length
       ) {
@@ -1561,15 +1440,15 @@
 
     } catch (error) {
       console.error(
-        "Erreur application:",
+        "Pending:",
         error
       );
     }
 
-    renderMyPendingApplication();
+    renderPendingApplication();
   }
 
-  function renderMyPendingApplication() {
+  function renderPendingApplication() {
     const section =
       $("#pending-section");
 
@@ -1584,17 +1463,13 @@
     }
 
     /*
-     * Dès qu'il est membre,
-     * il n'a plus de demande personnelle
-     * à afficher.
+     * Si la personne est déjà membre,
+     * sa demande n'est plus affichée.
      */
-    if (currentMembership) {
-      section.hidden = true;
-      content.innerHTML = "";
-      return;
-    }
-
-    if (!pendingApplication) {
+    if (
+      currentMembership ||
+      !pendingApplication
+    ) {
       section.hidden = true;
       content.innerHTML = "";
       return;
@@ -1620,25 +1495,17 @@
             <strong>
               ${Number(
                 pendingApplication.target_position_no ||
-                  0
+                0
               )}
             </strong>
           </p>
 
-          <p>
-            Expiration :
-            ${formatDate(
-              pendingApplication.expires_at
-            )}
-          </p>
-
           <span
-            class="pending-countdown"
             data-countdown="${escapeHtml(
               pendingApplication.expires_at
             )}"
           >
-            ${formatCountdown(
+            ${countdown(
               pendingApplication.expires_at
             )}
           </span>
@@ -1650,19 +1517,16 @@
   }
 
   /* =========================================================
-     DEMANDES À APPROUVER
+     DEMANDES POUR LA LÉGENDE
   ========================================================= */
 
   async function loadLegendApplications() {
     legendApplications = [];
 
-    const role =
-      currentMembership?.member_role ||
-      currentProfile?.role;
-
     if (
-      role !== "legend" ||
-      !currentMembership
+      !currentMembership ||
+      currentMembership.member_role !==
+        "legend"
     ) {
       renderLegendApplications();
       return;
@@ -1676,23 +1540,16 @@
         "vg_get_pending_for_legend"
       );
 
-      if (error) {
-        console.error(
-          "Demandes:",
-          error
-        );
-
-        return;
+      if (!error) {
+        legendApplications =
+          Array.isArray(data)
+            ? data
+            : [];
       }
-
-      legendApplications =
-        Array.isArray(data)
-          ? data
-          : [];
 
     } catch (error) {
       console.error(
-        "Erreur demandes:",
+        "Approvals:",
         error
       );
     }
@@ -1714,13 +1571,10 @@
       return;
     }
 
-    const role =
-      currentMembership?.member_role ||
-      currentProfile?.role;
-
     if (
-      role !== "legend" ||
-      !currentMembership
+      !currentMembership ||
+      currentMembership.member_role !==
+        "legend"
     ) {
       section.hidden = true;
       list.innerHTML = "";
@@ -1743,9 +1597,7 @@
       legendApplications
         .map(
           (application) => `
-            <article
-              class="approval-card"
-            >
+            <article class="approval-card">
 
               <div class="approval-card-main">
 
@@ -1758,17 +1610,10 @@
                   <strong>
                     ${Number(
                       application.target_position_no ||
-                        0
+                      0
                     )}
                   </strong>
                 </p>
-
-                <small>
-                  Créée le :
-                  ${formatDate(
-                    application.created_at
-                  )}
-                </small>
 
                 <small>
                   Expire dans :
@@ -1777,7 +1622,7 @@
                       application.expires_at
                     )}"
                   >
-                    ${formatCountdown(
+                    ${countdown(
                       application.expires_at
                     )}
                   </span>
@@ -1819,192 +1664,10 @@
       );
   }
 
-  /* =========================================================
-     PREMIER TABLEAU
-  ========================================================= */
-
-  function renderJoinFirstPlan() {
-    const container =
-      $("#board-container");
-
-    if (!container) {
-      return;
-    }
-
-    /*
-     * Jamais de bouton "Demander à entrer"
-     * si la personne possède déjà un tableau.
-     */
-    if (currentMembership) {
-      return;
-    }
-
-    if (pendingApplication) {
-      return;
-    }
-
-    const firstPlan =
-      visiblePlans.find(
-        (plan) =>
-          Number(
-            plan.sequence_no
-          ) === 1
-      );
-
-    if (!firstPlan) {
-      return;
-    }
-
-    container.hidden = false;
-
-    container.innerHTML = `
-      <div class="join-table-card">
-
-        <div class="join-table-icon">
-          +
-        </div>
-
-        <div>
-
-          <h3>
-            Rejoindre le premier tableau
-          </h3>
-
-          <p>
-            Envoyez votre demande à la
-            Légende. Vous entrerez uniquement
-            après son approbation.
-          </p>
-
-          <span>
-            ${escapeHtml(
-              firstPlan.name
-            )}
-          </span>
-
-        </div>
-
-        <button
-          type="button"
-          id="apply-first-plan-button"
-          class="primary-button"
-        >
-          Demander à entrer
-        </button>
-
-      </div>
-    `;
-
-    const button =
-      $("#apply-first-plan-button");
-
-    if (button) {
-      button.addEventListener(
-        "click",
-        applyToFirstPlan
-      );
-    }
-  }
-
-  async function applyToFirstPlan() {
-    const button =
-      $("#apply-first-plan-button");
-
-    if (button) {
-      button.disabled = true;
-      button.textContent =
-        "Envoi...";
-    }
-
-    try {
-      const {
-        error
-      } = await supabase.rpc(
-        "vg_apply_to_first_plan"
-      );
-
-      if (error) {
-        throw error;
-      }
-
-      notify(
-        "Votre demande a été envoyée à la Légende pour approbation.",
-        "success"
-      );
-
-      await refreshDashboard();
-
-    } catch (error) {
-      notify(
-        errorMessage(error),
-        "error"
-      );
-
-      if (button) {
-        button.disabled = false;
-        button.textContent =
-          "Demander à entrer";
-      }
-    }
-  }
-
-  /* =========================================================
-     PLAN SUIVANT
-  ========================================================= */
-
-  async function applyToNextPlan() {
-    /*
-     * Cette fonction reste disponible pour
-     * le processus backend, mais aucun bouton
-     * d'accès direct au prochain niveau n'est
-     * affiché dans l'interface.
-     */
-    if (!currentUser) {
-      return;
-    }
-
-    try {
-      const {
-        error
-      } = await supabase.rpc(
-        "vg_apply_to_next_plan_for_user",
-        {
-          p_user_id:
-            currentUser.id
-        }
-      );
-
-      if (error) {
-        throw error;
-      }
-
-      notify(
-        "Votre demande pour le niveau suivant a été enregistrée.",
-        "success"
-      );
-
-      await refreshDashboard();
-
-    } catch (error) {
-      notify(
-        errorMessage(error),
-        "error"
-      );
-    }
-  }
-
-  /* =========================================================
-     APPROBATION
-  ========================================================= */
-
   async function approveApplication(
     applicationId,
     button
   ) {
-    if (!applicationId) {
-      return;
-    }
-
     if (button) {
       button.disabled = true;
       button.textContent =
@@ -2027,7 +1690,7 @@
       }
 
       notify(
-        "Demande approuvée. Le membre est maintenant dans le tableau.",
+        "Demande approuvée.",
         "success"
       );
 
@@ -2055,21 +1718,7 @@
     if (
       !currentMembership?.membership_id
     ) {
-      notify(
-        "Aucune adhésion active trouvée.",
-        "error"
-      );
-
       return;
-    }
-
-    const button =
-      $("#simulation-progress-button");
-
-    if (button) {
-      button.disabled = true;
-      button.textContent =
-        "Enregistrement...";
     }
 
     try {
@@ -2094,8 +1743,8 @@
 
       notify(
         result?.completed
-          ? "La progression requise est terminée."
-          : "Progression de simulation enregistrée.",
+          ? "Progression terminée."
+          : "Progression enregistrée.",
         "success"
       );
 
@@ -2106,12 +1755,6 @@
         errorMessage(error),
         "error"
       );
-
-      if (button) {
-        button.disabled = false;
-        button.textContent =
-          "Enregistrer une progression";
-      }
     }
   }
 
@@ -2146,11 +1789,6 @@
         firstRow(data);
 
       if (!profile) {
-        notify(
-          "Profil public indisponible.",
-          "error"
-        );
-
         return;
       }
 
@@ -2234,23 +1872,13 @@
     );
   }
 
-  function setupPublicProfileModal() {
+  function setupPublicProfile() {
     document
       .querySelectorAll(
         "[data-close-public-profile]"
       )
       .forEach(
         (element) => {
-          if (
-            element.dataset.bound ===
-            "true"
-          ) {
-            return;
-          }
-
-          element.dataset.bound =
-            "true";
-
           element.addEventListener(
             "click",
             closePublicProfile
@@ -2263,7 +1891,7 @@
      PARRAINAGE
   ========================================================= */
 
-  async function loadReferralLink() {
+  async function loadReferral() {
     try {
       const {
         data,
@@ -2293,33 +1921,23 @@
 
       document
         .querySelectorAll(
-          "[data-referral-link]"
-        )
-        .forEach(
-          (element) => {
-            if (
-              element.tagName ===
-                "INPUT" ||
-              element.tagName ===
-                "TEXTAREA"
-            ) {
-              element.value =
-                url;
-            } else {
-              element.textContent =
-                url;
-            }
-          }
-        );
-
-      document
-        .querySelectorAll(
           "[data-referral-code]"
         )
         .forEach(
           (element) => {
             element.textContent =
               code;
+          }
+        );
+
+      document
+        .querySelectorAll(
+          "[data-referral-link]"
+        )
+        .forEach(
+          (element) => {
+            element.value =
+              url;
           }
         );
 
@@ -2337,59 +1955,13 @@
                   );
 
                   notify(
-                    "Lien de parrainage copié.",
+                    "Lien copié.",
                     "success"
                   );
-
-                } catch {
-                  notify(
-                    "Impossible de copier automatiquement le lien.",
-                    "error"
-                  );
-                }
+                } catch {}
               };
           }
         );
-
-    } catch {}
-  }
-
-  async function processReferralCode() {
-    const params =
-      new URLSearchParams(
-        window.location.search
-      );
-
-    const code =
-      params.get("ref");
-
-    if (!code) {
-      return;
-    }
-
-    try {
-      const {
-        error
-      } = await supabase.rpc(
-        "vg_set_referrer_by_code",
-        {
-          p_referral_code:
-            code.trim()
-        }
-      );
-
-      if (!error) {
-        notify(
-          "Code de parrainage enregistré.",
-          "success"
-        );
-
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname
-        );
-      }
 
     } catch {}
   }
@@ -2398,64 +1970,28 @@
      INTERFACE
   ========================================================= */
 
-  function hideLegacyDonationInterface() {
-    document
-      .querySelectorAll(
-        ".donation-section," +
-        "[data-donation-section]," +
-        "[data-donation-button]," +
-        ".donation-button"
-      )
-      .forEach(
-        (element) => {
-          element.hidden = true;
-        }
-      );
-  }
-
   function setupLogout() {
-    document
-      .querySelectorAll(
-        "#logout-button,[data-logout]"
-      )
-      .forEach(
-        (button) => {
-          if (
-            button.dataset.bound ===
-            "true"
-          ) {
-            return;
-          }
+    $(
+      "#logout-button"
+    )?.addEventListener(
+      "click",
+      async () => {
+        await supabase.auth.signOut();
 
-          button.dataset.bound =
-            "true";
-
-          button.addEventListener(
-            "click",
-            logout
-          );
-        }
-      );
+        window.location.replace(
+          "index.html"
+        );
+      }
+    );
   }
 
   function setupRefresh() {
     document
       .querySelectorAll(
-        "#refresh-button," +
-        "#board-refresh-button"
+        "#refresh-button,#board-refresh-button"
       )
       .forEach(
         (button) => {
-          if (
-            button.dataset.bound ===
-            "true"
-          ) {
-            return;
-          }
-
-          button.dataset.bound =
-            "true";
-
           button.addEventListener(
             "click",
             refreshDashboard
@@ -2472,34 +2008,12 @@
       .forEach(
         (element) => {
           element.textContent =
-            formatCountdown(
+            countdown(
               element.dataset
                 .countdown
             );
         }
       );
-  }
-
-  async function logout() {
-    try {
-      await supabase.auth.signOut();
-    } finally {
-      window.location.replace(
-        "index.html"
-      );
-    }
-  }
-
-  async function handleMissingProfile() {
-    hideApp();
-
-    try {
-      await supabase.auth.signOut();
-    } catch {}
-
-    window.location.replace(
-      "index.html?create=1"
-    );
   }
 
   /* =========================================================
@@ -2508,52 +2022,54 @@
 
   async function refreshDashboard() {
     showLoading(
-      "Actualisation de votre espace..."
+      "Actualisation..."
     );
 
     try {
       await loadProfile();
       await loadPlans();
-      await loadMyPendingApplication();
+      await loadPendingApplication();
       await loadCurrentBoard();
 
       /*
-       * Si l'utilisateur possède déjà
-       * un tableau : aucun bouton d'entrée.
+       * Seulement un utilisateur
+       * sans membership peut demander
+       * le premier tableau.
        */
-      if (!currentMembership) {
-        renderMyPendingApplication();
-
-        if (!pendingApplication) {
-          renderJoinFirstPlan();
-        }
+      if (
+        !currentMembership &&
+        !pendingApplication
+      ) {
+        renderNoBoard();
       }
 
       await loadLegendApplications();
-      await loadReferralLink();
+      await loadReferral();
 
       renderPlans();
+      renderPendingApplication();
 
-      setupPublicProfileModal();
+      setupPublicProfile();
       setupLogout();
       setupRefresh();
 
-      hideLegacyDonationInterface();
       updateCountdowns();
 
       showApp();
 
     } catch (error) {
-      console.error(
-        "Dashboard:",
-        error
-      );
+      console.error(error);
 
       if (
         error?.message ===
         "PROFILE_NOT_FOUND"
       ) {
-        await handleMissingProfile();
+        await supabase.auth.signOut();
+
+        window.location.replace(
+          "index.html?create=1"
+        );
+
         return;
       }
 
@@ -2576,14 +2092,14 @@
 
     if (!supabase) {
       console.error(
-        "Client Supabase introuvable."
+        "Supabase introuvable."
       );
 
       return;
     }
 
     showLoading(
-      "Chargement de votre espace..."
+      "Chargement..."
     );
 
     try {
@@ -2605,41 +2121,44 @@
       currentUser =
         session.user;
 
-      await processReferralCode();
-
+      /*
+       * 1. Profil
+       * 2. user_id réel du profil
+       * 3. Plans
+       * 4. Tableau
+       */
       await loadProfile();
 
       await loadPlans();
 
-      await loadMyPendingApplication();
+      await loadPendingApplication();
 
-      /*
-       * Recherche d'abord l'adhésion active.
-       * Donc Genesis et tout autre membre
-       * déjà placé dans une division voient
-       * leur tableau.
-       */
       await loadCurrentBoard();
 
-      if (!currentMembership) {
-        renderMyPendingApplication();
-
-        if (!pendingApplication) {
-          renderJoinFirstPlan();
-        }
+      /*
+       * IMPORTANT :
+       * Genesis a déjà un membership.
+       * Donc cette section ne doit jamais
+       * apparaître pour Genesis.
+       */
+      if (
+        !currentMembership &&
+        !pendingApplication
+      ) {
+        renderNoBoard();
       }
 
       await loadLegendApplications();
 
-      await loadReferralLink();
+      await loadReferral();
 
       renderPlans();
+      renderPendingApplication();
 
-      setupPublicProfileModal();
+      setupPublicProfile();
       setupLogout();
       setupRefresh();
 
-      hideLegacyDonationInterface();
       updateCountdowns();
 
       if (countdownTimer) {
@@ -2658,17 +2177,9 @@
 
     } catch (error) {
       console.error(
-        "Initialisation:",
+        "Dashboard error:",
         error
       );
-
-      if (
-        error?.message ===
-        "PROFILE_NOT_FOUND"
-      ) {
-        await handleMissingProfile();
-        return;
-      }
 
       notify(
         errorMessage(error),
@@ -2680,23 +2191,15 @@
     }
   }
 
-  /* =========================================================
-     API
-  ========================================================= */
-
   window.VG_APP = {
     refresh:
       refreshDashboard,
-
-    logout,
 
     openPublicProfile,
 
     closePublicProfile,
 
     applyToFirstPlan,
-
-    applyToNextPlan,
 
     approveApplication,
 
