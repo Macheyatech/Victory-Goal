@@ -401,6 +401,30 @@
     );
   }
 
+  function getPlanRequiredProgress(plan) {
+    if (
+      currentMembership &&
+      dashboardProgression?.cycle_kind
+    ) {
+      return dashboardProgression.cycle_kind === "genesis"
+        ? 8
+        : 7;
+    }
+
+    if (
+      pendingApplication &&
+      currentPlan?.id === plan?.id
+    ) {
+      return Number(plan?.sequence_no) === 1
+        ? 8
+        : 7;
+    }
+
+    return Number(plan?.sequence_no) === 1
+      ? 8
+      : 7;
+  }
+
   function applyPlanColors(plan) {
     const colors =
       getPlanColors(plan);
@@ -498,9 +522,7 @@
                 <p>
                   Progression requise :
                   <strong>
-                    ${Number(
-                      plan.required_progress || 0
-                    )}
+                    ${getPlanRequiredProgress(plan)}
                   </strong>
                 </p>
 
