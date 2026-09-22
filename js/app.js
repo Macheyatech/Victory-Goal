@@ -14,6 +14,7 @@
 
   let currentProgress = 0;
   let requiredProgress = 0;
+  let dashboardProgression = null;
 
   let pendingApplication = null;
   let legendApplications = [];
@@ -552,7 +553,15 @@
       context.current_membership || null;
 
     currentPlan =
-      context.current_plan || null;
+      context.current_plan ||
+      context.pending_plan ||
+      null;
+
+    dashboardProgression =
+      context.progression || null;
+
+    pendingApplication =
+      context.pending_application || null;
 
     currentBoard =
       Array.isArray(
@@ -630,63 +639,57 @@
   ========================================================= */
 
   function calculateProgress() {
+    /*
+     * La progression personnelle affichée ici
+     * appartient uniquement à la Légende active.
+     *
+     * Le backend est la source de vérité :
+     * - legend  -> completed / required
+     * - member  -> aucune progression de Légende
+     * - pending -> aucune progression
+     */
     if (
-      !currentPlan ||
-      !currentMembership
+      !dashboardProgression ||
+      dashboardProgression.visible !== true ||
+      dashboardProgression.type !== "legend"
     ) {
       currentProgress = 0;
       requiredProgress = 0;
       return;
     }
 
+    currentProgress =
+      Number(
+        dashboardProgression.completed || 0
+      );
+
     requiredProgress =
       Number(
-        currentPlan.required_progress ||
-        8
+        dashboardProgression.required ||
+        currentPlan?.required_progress ||
+        0
       );
-
-    /*
-     * Genesis :
-     * positions 2 à 9 = 8 positions
-     *
-     * Branche :
-     * positions 5 à 11 = 7 positions
-     *
-     * La présence de la position 11
-     * identifie le modèle de branche.
-     */
-    const isBranch =
-      currentBoard.some(
-        (row) =>
-          Number(row.position_no) === 11
-      );
-
-    const firstProgressionPosition =
-      isBranch ? 5 : 2;
-
-    const lastProgressionPosition =
-      isBranch ? 11 : 9;
-
-    currentProgress =
-      currentBoard.filter(
-        (row) =>
-          row.membership_id &&
-          row.membership_status ===
-            "active" &&
-          Number(row.position_no) >=
-            firstProgressionPosition &&
-          Number(row.position_no) <=
-            lastProgressionPosition
-      ).length;
 
     currentProgress =
       Math.min(
-        currentProgress,
-        requiredProgress
+        Math.max(currentProgress, 0),
+        Math.max(requiredProgress, 0)
       );
   }
 
   function renderCurrentPlan() {
+    const progressCard =
+      document.querySelector(".progress-card");
+
+    const isLegend =
+      currentMembership?.member_role === "legend";
+
+    if (progressCard) {
+      progressCard.hidden =
+        !currentPlan ||
+        !isLegend;
+    }
+
     if (!currentPlan) {
       setText(
         "#current-plan-name",
@@ -743,8 +746,9 @@
 
     const required =
       Number(
+        requiredProgress ||
         currentPlan.required_progress ||
-        8
+        0
       );
 
     const progress =
@@ -834,6 +838,15 @@
 
     area.hidden = false;
 
+    const isLegend =
+      currentMembership?.member_role === "legend";
+
+    if (!isLegend) {
+      section.hidden = true;
+      area.innerHTML = "";
+      return;
+    }
+
     const complete =
       currentProgress >=
       requiredProgress;
@@ -894,7 +907,17 @@
     const next =
       getNextPlan();
 
-    if (!next) {
+    const isLegend =
+      currentMembership?.member_role === "legend";
+
+    /*
+     * Seule la Légende possède la progression
+     * numérique du cycle. Les membres ne doivent
+     * jamais utiliser progress_count comme leur
+     * propre progression ni déverrouiller un niveau
+     * à partir de cette valeur.
+     */
+    if (!next || !isLegend) {
       section.hidden = true;
       area.innerHTML = "";
       return;
@@ -906,13 +929,6 @@
       currentProgress >=
       requiredProgress;
 
-    /*
-     * Genesis avance automatiquement.
-     *
-     * Les autres membres doivent demander
-     * l'accès au prochain niveau une fois
-     * leur progression terminée.
-     */
     const isGenesis =
       currentProfile?.is_genesis === true;
 
@@ -949,7 +965,7 @@
           <p>
             ${
               !complete
-                ? "Ce niveau reste verrouillé jusqu'à la fin des conditions du niveau actuel."
+                ? "Ce niveau reste verrouillé jusqu'à la fin de votre cycle de Légende."
                 : isGenesis
                 ? "Votre progression est terminée. Genesis avance automatiquement vers le niveau suivant."
                 : "Votre progression est terminée. Vous pouvez demander l'entrée au prochain niveau."
@@ -1047,7 +1063,7 @@
     }
 
     if (
-      !currentMembership ||
+      (!currentMembership && !pendingApplication) ||
       !currentPlan ||
       !currentBoard.length
     ) {
@@ -1144,7 +1160,9 @@
 
     if (note) {
       note.textContent =
-        "Cliquez sur un nom pour consulter les informations publiques disponibles. Cliquez sur l'en-tête du tableau pour afficher ou masquer la division.";
+        pendingApplication && !currentMembership
+          ? "Votre demande est en attente. La position reste réservée et vous pouvez consulter les membres du tableau. Cliquez sur la Légende pour voir son numéro de téléphone."
+          : "Cliquez sur un nom pour consulter les informations publiques disponibles. Cliquez sur l'en-tête du tableau pour afficher ou masquer la division.";
     }
   }
 
@@ -1330,7 +1348,7 @@
 
   function toggleBoard() {
     if (
-      !currentMembership ||
+      (!currentMembership && !pendingApplication) ||
       !currentBoard.length
     ) {
       return;
@@ -1365,6 +1383,15 @@
       $("#board-container");
 
     if (!container) {
+      return;
+    }
+
+    if (
+      pendingApplication &&
+      currentPlan &&
+      currentBoard.length
+    ) {
+      renderBoard();
       return;
     }
 
@@ -1548,9 +1575,16 @@
   ========================================================= */
 
   async function loadPendingApplication() {
+    const contextPending =
+      pendingApplication;
+
     pendingApplication = null;
 
     if (!viewerUserId) {
+      pendingApplication =
+        contextPending;
+      renderPendingApplication();
+      return;
       return;
     }
 
@@ -1604,6 +1638,11 @@
         "Pending:",
         error
       );
+    }
+
+    if (!pendingApplication) {
+      pendingApplication =
+        contextPending;
     }
 
     renderPendingApplication();
@@ -2278,7 +2317,8 @@
       await loadPendingApplication();
 
       if (
-        !currentMembership
+        !currentMembership &&
+        !(pendingApplication && currentBoard.length)
       ) {
         renderNoBoard();
       }
@@ -2380,7 +2420,8 @@
       await loadPendingApplication();
 
       if (
-        !currentMembership
+        !currentMembership &&
+        !(pendingApplication && currentBoard.length)
       ) {
         renderNoBoard();
       }
