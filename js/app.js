@@ -523,12 +523,19 @@
 
               <div class="plan-card-body">
 
-                <p>
-                  Progression requise :
-                  <strong>
-                    ${getPlanRequiredProgress(plan)}
-                  </strong>
-                </p>
+                ${
+                  currentMembership?.member_role === "legend" &&
+                  currentPlan?.id === plan.id
+                    ? `
+                      <p>
+                        Progression requise :
+                        <strong>
+                          ${getPlanRequiredProgress(plan)}
+                        </strong>
+                      </p>
+                    `
+                    : ""
+                }
 
                 ${
                   isCurrent
