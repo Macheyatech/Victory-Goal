@@ -838,15 +838,6 @@
 
     area.hidden = false;
 
-    const isLegend =
-      currentMembership?.member_role === "legend";
-
-    if (!isLegend) {
-      section.hidden = true;
-      area.innerHTML = "";
-      return;
-    }
-
     const complete =
       currentProgress >=
       requiredProgress;
