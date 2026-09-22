@@ -18,7 +18,7 @@
   let pendingApplication = null;
   let legendApplications = [];
 
-  let boardExpanded = false;
+  let boardExpanded = true;
   let countdownTimer = null;
 
   const $ = (selector) =>
@@ -230,6 +230,22 @@
       [
         "profile not found",
         "Profil introuvable."
+      ],
+      [
+        "genesis enters the first table automatically",
+        "Genesis entre automatiquement dans le premier tableau."
+      ],
+      [
+        "genesis advances automatically",
+        "Genesis avance automatiquement vers le niveau suivant."
+      ],
+      [
+        "only genesis can approve applications in the genesis table",
+        "Seul Genesis peut approuver les demandes du tableau Genesis."
+      ],
+      [
+        "non-genesis cycles must be opened through the recursive branch engine",
+        "Ce tableau doit être créé par le système de progression récursive."
       ]
     ];
 
@@ -545,18 +561,27 @@
         ? context.current_board
         : [];
 
-    /*
-     * Le RPC backend est maintenant
-     * la source officielle.
-     *
-     * Plus besoin de chercher le membership
-     * dans les lignes du tableau.
-     */
-
     if (currentMembership) {
       currentMembership =
         normalizeMembership(
           currentMembership
+        );
+    }
+
+    /*
+     * Le backend peut retourner plusieurs
+     * cycles visibles pour l'utilisateur.
+     *
+     * Le tableau affiché doit cependant
+     * correspondre au tableau actif actuel.
+     */
+    if (currentMembership?.table_id) {
+      currentBoard =
+        currentBoard.filter(
+          (row) =>
+            !row.table_id ||
+            row.table_id ===
+              currentMembership.table_id
         );
     }
 
@@ -620,14 +645,27 @@
         8
       );
 
+    /*
+     * Genesis :
+     * positions 2 à 9 = 8 positions
+     *
+     * Branche :
+     * positions 5 à 11 = 7 positions
+     *
+     * La présence de la position 11
+     * identifie le modèle de branche.
+     */
     const isBranch =
       currentBoard.some(
         (row) =>
-          Number(row.position_no) >= 12
+          Number(row.position_no) === 11
       );
 
     const firstProgressionPosition =
       isBranch ? 5 : 2;
+
+    const lastProgressionPosition =
+      isBranch ? 11 : 9;
 
     currentProgress =
       currentBoard.filter(
@@ -636,7 +674,9 @@
           row.membership_status ===
             "active" &&
           Number(row.position_no) >=
-            firstProgressionPosition
+            firstProgressionPosition &&
+          Number(row.position_no) <=
+            lastProgressionPosition
       ).length;
 
     currentProgress =
@@ -836,6 +876,10 @@
       );
   }
 
+  /* =========================================================
+     PROCHAIN NIVEAU
+  ========================================================= */
+
   function renderNextPlan() {
     const section =
       $("#next-plan-section");
@@ -852,6 +896,7 @@
 
     if (!next) {
       section.hidden = true;
+      area.innerHTML = "";
       return;
     }
 
@@ -860,6 +905,21 @@
     const complete =
       currentProgress >=
       requiredProgress;
+
+    /*
+     * Genesis avance automatiquement.
+     *
+     * Les autres membres doivent demander
+     * l'accès au prochain niveau une fois
+     * leur progression terminée.
+     */
+    const isGenesis =
+      currentProfile?.is_genesis === true;
+
+    const canRequest =
+      complete &&
+      !isGenesis &&
+      !currentMembership?.is_passerelle;
 
     area.innerHTML = `
       <div class="next-plan-card locked">
@@ -888,24 +948,90 @@
 
           <p>
             ${
-              complete
-                ? "Votre progression est terminée. L'accès suit le processus de validation prévu."
-                : "Ce niveau reste verrouillé jusqu'à la fin des conditions du niveau actuel."
+              !complete
+                ? "Ce niveau reste verrouillé jusqu'à la fin des conditions du niveau actuel."
+                : isGenesis
+                ? "Votre progression est terminée. Genesis avance automatiquement vers le niveau suivant."
+                : "Votre progression est terminée. Vous pouvez demander l'entrée au prochain niveau."
             }
           </p>
 
         </div>
 
-        <span class="next-plan-status">
-          ${
-            complete
-              ? "Processus d'accès"
-              : "Accès verrouillé"
-          }
-        </span>
+        ${
+          canRequest
+            ? `
+              <button
+                type="button"
+                id="apply-next-plan-button"
+                class="primary-button"
+              >
+                Demander l'accès
+              </button>
+            `
+            : `
+              <span class="next-plan-status">
+                ${
+                  complete
+                    ? isGenesis
+                      ? "Avancement automatique"
+                      : "Niveau prêt"
+                    : "Accès verrouillé"
+                }
+              </span>
+            `
+        }
 
       </div>
     `;
+
+    $("#apply-next-plan-button")
+      ?.addEventListener(
+        "click",
+        applyToNextPlan
+      );
+  }
+
+  async function applyToNextPlan() {
+    const button =
+      $("#apply-next-plan-button");
+
+    if (button) {
+      button.disabled = true;
+      button.textContent =
+        "Envoi...";
+    }
+
+    try {
+      const {
+        error
+      } = await supabase.rpc(
+        "vg_apply_to_next_plan"
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      notify(
+        "Votre demande d'accès au prochain niveau a été envoyée.",
+        "success"
+      );
+
+      await refreshDashboard();
+
+    } catch (error) {
+      notify(
+        errorMessage(error),
+        "error"
+      );
+
+      if (button) {
+        button.disabled = false;
+        button.textContent =
+          "Demander l'accès";
+      }
+    }
   }
 
   /* =========================================================
@@ -943,16 +1069,20 @@
       }
     );
 
+    /*
+     * Genesis = 9 positions.
+     * Branche = 11 positions.
+     */
     const isBranch =
       currentBoard.some(
         (row) =>
           Number(
             row.position_no
-          ) >= 12
+          ) === 11
       );
 
     const maxPosition =
-      isBranch ? 12 : 9;
+      isBranch ? 11 : 9;
 
     const colors =
       getPlanColors(
@@ -1022,10 +1152,6 @@
     row,
     position
   ) {
-    /*
-     * POSITION VIDE
-     * Aucun texte.
-     */
     if (!row) {
       return `
         <div
@@ -1036,9 +1162,6 @@
       `;
     }
 
-    /*
-     * DEMANDE EN ATTENTE
-     */
     if (
       !row.membership_id &&
       row.pending_application_id
@@ -1067,9 +1190,6 @@
       `;
     }
 
-    /*
-     * MEMBRE ACTIF
-     */
     if (row.membership_id) {
       const username =
         row.username ||
@@ -1084,10 +1204,6 @@
         row.user_id ===
         viewerUserId;
 
-      /*
-       * Les autres membres sont
-       * cliquables.
-       */
       if (!isMe) {
         return `
           <div
@@ -1117,9 +1233,6 @@
         `;
       }
 
-      /*
-       * Notre propre position.
-       */
       return `
         <div
           class="
@@ -1146,9 +1259,6 @@
       `;
     }
 
-    /*
-     * FALLBACK : position vide.
-     */
     return `
       <div
         class="board-node empty"
@@ -1276,10 +1386,6 @@
         "Votre tableau apparaîtra ici après votre entrée et sa validation.";
     }
 
-    /*
-     * Si une demande est déjà en attente,
-     * on n'affiche pas une deuxième invitation.
-     */
     if (pendingApplication) {
       container.hidden = false;
 
@@ -1310,6 +1416,43 @@
     }
 
     container.hidden = false;
+
+    /*
+     * Genesis ne demande jamais
+     * d'entrée dans le premier tableau.
+     */
+    if (
+      currentProfile?.is_genesis === true
+    ) {
+      container.innerHTML = `
+        <div class="join-table-card">
+
+          <div class="join-table-icon">
+            ★
+          </div>
+
+          <div>
+
+            <h3>
+              Genesis
+            </h3>
+
+            <p>
+              Genesis entre automatiquement
+              dans le premier tableau.
+            </p>
+
+            <span>
+              Niveau V$1
+            </span>
+
+          </div>
+
+        </div>
+      `;
+
+      return;
+    }
 
     container.innerHTML = `
       <div class="join-table-card">
@@ -1477,11 +1620,6 @@
       return;
     }
 
-    /*
-     * Une personne déjà membre
-     * n'a plus besoin de voir
-     * son ancienne demande.
-     */
     if (
       currentMembership ||
       !pendingApplication
@@ -2113,13 +2251,6 @@
     );
 
     try {
-      /*
-       * 1. Session
-       * 2. Profil
-       * 3. Plans
-       * 4. Contexte complet
-       * 5. Demandes
-       */
       const {
         data: {
           session
@@ -2146,12 +2277,6 @@
 
       await loadPendingApplication();
 
-      /*
-       * Si l'utilisateur n'a pas encore
-       * de membership, on affiche soit
-       * la demande en attente, soit
-       * l'invitation.
-       */
       if (
         !currentMembership
       ) {
@@ -2246,14 +2371,6 @@
       currentUser =
         session.user;
 
-      /*
-       * NOUVEAU FLUX :
-       *
-       * Le backend nous donne directement
-       * le membership actif + le plan actif
-       * + le tableau complet.
-       */
-
       await loadProfile();
 
       await loadPlans();
@@ -2325,6 +2442,8 @@
     closePublicProfile,
 
     applyToFirstPlan,
+
+    applyToNextPlan,
 
     approveApplication,
 
