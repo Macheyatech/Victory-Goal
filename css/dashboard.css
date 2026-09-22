@@ -928,9 +928,7 @@ img {
                   C2
                3  3  3
 
-   STRUCTURE 12 POSITIONS
-   keeps the same main hierarchy while
-   preserving the recursive branch members.
+   STRUCTURE 11 POSITIONS — BRANCH
 ========================================================= */
 
 .victory-board {
@@ -1029,26 +1027,56 @@ img {
   pointer-events: none;
 }
 
+/* Horizontal branch connection */
+
+.victory-board::after {
+  content: "";
+
+  position: absolute;
+
+  top: 50%;
+  left: 36px;
+  right: 36px;
+
+  height: 2px;
+
+  transform: translateY(-50%);
+
+  background:
+    linear-gradient(
+      to right,
+      transparent,
+      color-mix(
+        in srgb,
+        var(--board-primary, var(--gold)) 55%,
+        transparent
+      ),
+      color-mix(
+        in srgb,
+        var(--board-primary, var(--gold)) 55%,
+        transparent
+      ),
+      transparent
+    );
+
+  opacity: 0.38;
+
+  pointer-events: none;
+}
+
 /* =========================================================
    9-POSITION TABLE
 ========================================================= */
-
-/* Position 1 — Légende — CENTER */
 
 .victory-board .board-node:nth-child(1) {
   grid-column: 4;
   grid-row: 3;
 }
 
-/* Position 2 — Constructor supérieur */
-
 .victory-board .board-node:nth-child(2) {
   grid-column: 4;
   grid-row: 2;
 }
-
-/* Positions 3–5 — 3 personnes derrière
-   Constructor supérieur */
 
 .victory-board .board-node:nth-child(3) {
   grid-column: 2;
@@ -1065,15 +1093,10 @@ img {
   grid-row: 1;
 }
 
-/* Position 6 — Constructor inférieur */
-
 .victory-board .board-node:nth-child(6) {
   grid-column: 4;
   grid-row: 4;
 }
-
-/* Positions 7–9 — 3 personnes derrière
-   Constructor inférieur */
 
 .victory-board .board-node:nth-child(7) {
   grid-column: 2;
@@ -1091,17 +1114,20 @@ img {
 }
 
 /* =========================================================
-   12-POSITION BRANCH TABLE
+   11-POSITION BRANCH TABLE
 ========================================================= */
 
 /*
    1  = Légende
    2  = Constructor supérieur
    3  = Constructor inférieur
-   4  = membre de continuité
-   5-7 = 3 membres du Constructor supérieur
+   4  = Membre de continuité
+
+   5-7  = 3 membres du Constructor supérieur
    8-10 = 3 membres du Constructor inférieur
-   11-12 = continuation de la branche
+   11   = Dernier membre de progression
+
+   Chaque branche possède exactement 11 positions.
 */
 
 /* Légende */
@@ -1116,6 +1142,20 @@ img {
 .victory-board .board-node:nth-child(2) {
   grid-column: 4;
   grid-row: 2;
+}
+
+/* Constructor inférieur */
+
+.victory-board .board-node:nth-child(3) {
+  grid-column: 4;
+  grid-row: 4;
+}
+
+/* Membre de continuité */
+
+.victory-board .board-node:nth-child(4) {
+  grid-column: 1;
+  grid-row: 3;
 }
 
 /* Trois membres du Constructor supérieur */
@@ -1135,13 +1175,6 @@ img {
   grid-row: 1;
 }
 
-/* Constructor inférieur */
-
-.victory-board .board-node:nth-child(3) {
-  grid-column: 4;
-  grid-row: 4;
-}
-
 /* Trois membres du Constructor inférieur */
 
 .victory-board .board-node:nth-child(8) {
@@ -1159,23 +1192,11 @@ img {
   grid-row: 5;
 }
 
-/* Membre porté par la branche */
-
-.victory-board .board-node:nth-child(4) {
-  grid-column: 7;
-  grid-row: 3;
-}
-
-/* Continuité génération suivante */
+/* Dernier membre de progression */
 
 .victory-board .board-node:nth-child(11) {
-  grid-column: 3;
-  grid-row: 6;
-}
-
-.victory-board .board-node:nth-child(12) {
-  grid-column: 5;
-  grid-row: 6;
+  grid-column: 7;
+  grid-row: 3;
 }
 
 /* =========================================================
