@@ -402,8 +402,12 @@
   }
 
   function getPlanRequiredProgress(plan) {
+    const isCurrent =
+      !!currentMembership &&
+      currentPlan?.id === plan?.id;
+
     if (
-      currentMembership &&
+      isCurrent &&
       dashboardProgression?.cycle_kind
     ) {
       return dashboardProgression.cycle_kind === "genesis"
