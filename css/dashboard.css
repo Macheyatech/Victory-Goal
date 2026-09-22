@@ -1065,50 +1065,50 @@ img {
 }
 
 /* =========================================================
-   9-POSITION TABLE
+   9-POSITION GENESIS TABLE
 ========================================================= */
 
-.victory-board .board-node:nth-child(1) {
+.victory-board:not(:has(.board-node[data-position="11"])) .board-node:nth-child(1) {
   grid-column: 4;
   grid-row: 3;
 }
 
-.victory-board .board-node:nth-child(2) {
+.victory-board:not(:has(.board-node[data-position="11"])) .board-node:nth-child(2) {
   grid-column: 4;
   grid-row: 2;
 }
 
-.victory-board .board-node:nth-child(3) {
+.victory-board:not(:has(.board-node[data-position="11"])) .board-node:nth-child(3) {
   grid-column: 2;
   grid-row: 1;
 }
 
-.victory-board .board-node:nth-child(4) {
+.victory-board:not(:has(.board-node[data-position="11"])) .board-node:nth-child(4) {
   grid-column: 4;
   grid-row: 1;
 }
 
-.victory-board .board-node:nth-child(5) {
+.victory-board:not(:has(.board-node[data-position="11"])) .board-node:nth-child(5) {
   grid-column: 6;
   grid-row: 1;
 }
 
-.victory-board .board-node:nth-child(6) {
+.victory-board:not(:has(.board-node[data-position="11"])) .board-node:nth-child(6) {
   grid-column: 4;
   grid-row: 4;
 }
 
-.victory-board .board-node:nth-child(7) {
+.victory-board:not(:has(.board-node[data-position="11"])) .board-node:nth-child(7) {
   grid-column: 2;
   grid-row: 5;
 }
 
-.victory-board .board-node:nth-child(8) {
+.victory-board:not(:has(.board-node[data-position="11"])) .board-node:nth-child(8) {
   grid-column: 4;
   grid-row: 5;
 }
 
-.victory-board .board-node:nth-child(9) {
+.victory-board:not(:has(.board-node[data-position="11"])) .board-node:nth-child(9) {
   grid-column: 6;
   grid-row: 5;
 }
@@ -1132,69 +1132,69 @@ img {
 
 /* Légende */
 
-.victory-board .board-node:nth-child(1) {
+.victory-board:has(.board-node[data-position="11"]) .board-node:nth-child(1) {
   grid-column: 4;
   grid-row: 3;
 }
 
 /* Constructor supérieur */
 
-.victory-board .board-node:nth-child(2) {
+.victory-board:has(.board-node[data-position="11"]) .board-node:nth-child(2) {
   grid-column: 4;
   grid-row: 2;
 }
 
 /* Constructor inférieur */
 
-.victory-board .board-node:nth-child(3) {
+.victory-board:has(.board-node[data-position="11"]) .board-node:nth-child(3) {
   grid-column: 4;
   grid-row: 4;
 }
 
 /* Membre de continuité */
 
-.victory-board .board-node:nth-child(4) {
+.victory-board:has(.board-node[data-position="11"]) .board-node:nth-child(4) {
   grid-column: 1;
   grid-row: 3;
 }
 
 /* Trois membres du Constructor supérieur */
 
-.victory-board .board-node:nth-child(5) {
+.victory-board:has(.board-node[data-position="11"]) .board-node:nth-child(5) {
   grid-column: 2;
   grid-row: 1;
 }
 
-.victory-board .board-node:nth-child(6) {
+.victory-board:has(.board-node[data-position="11"]) .board-node:nth-child(6) {
   grid-column: 4;
   grid-row: 1;
 }
 
-.victory-board .board-node:nth-child(7) {
+.victory-board:has(.board-node[data-position="11"]) .board-node:nth-child(7) {
   grid-column: 6;
   grid-row: 1;
 }
 
 /* Trois membres du Constructor inférieur */
 
-.victory-board .board-node:nth-child(8) {
+.victory-board:has(.board-node[data-position="11"]) .board-node:nth-child(8) {
   grid-column: 2;
   grid-row: 5;
 }
 
-.victory-board .board-node:nth-child(9) {
+.victory-board:has(.board-node[data-position="11"]) .board-node:nth-child(9) {
   grid-column: 4;
   grid-row: 5;
 }
 
-.victory-board .board-node:nth-child(10) {
+.victory-board:has(.board-node[data-position="11"]) .board-node:nth-child(10) {
   grid-column: 6;
   grid-row: 5;
 }
 
 /* Dernier membre de progression */
 
-.victory-board .board-node:nth-child(11) {
+.victory-board:has(.board-node[data-position="11"]) .board-node:nth-child(11) {
   grid-column: 7;
   grid-row: 3;
 }
