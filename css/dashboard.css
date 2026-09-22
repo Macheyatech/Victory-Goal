@@ -2521,3 +2521,96 @@ a:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* =========================================================
+   FINAL BOARD LAYOUT FIX
+   Genesis = 9 positions
+   Branch  = 11 positions
+========================================================= */
+
+/* ---------------------------------------------------------
+   GENESIS — 9 POSITIONS
+--------------------------------------------------------- */
+
+.victory-board:not(:has(.board-node[data-position="11"]))
+  .board-node:nth-child(1) {
+  grid-column: 4;
+  grid-row: 3;
+}
+
+.victory-board:not(:has(.board-node[data-position="11"]))
+  .board-node:nth-child(2) {
+  grid-column: 4;
+  grid-row: 2;
+}
+
+.victory-board:not(:has(.board-node[data-position="11"]))
+  .board-node:nth-child(3) {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.victory-board:not(:has(.board-node[data-position="11"]))
+  .board-node:nth-child(4) {
+  grid-column: 4;
+  grid-row: 1;
+}
+
+.victory-board:not(:has(.board-node[data-position="11"]))
+  .board-node:nth-child(5) {
+  grid-column: 6;
+  grid-row: 1;
+}
+
+.victory-board:not(:has(.board-node[data-position="11"]))
+  .board-node:nth-child(6) {
+  grid-column: 4;
+  grid-row: 4;
+}
+
+.victory-board:not(:has(.board-node[data-position="11"]))
+  .board-node:nth-child(7) {
+  grid-column: 2;
+  grid-row: 5;
+}
+
+.victory-board:not(:has(.board-node[data-position="11"]))
+  .board-node:nth-child(8) {
+  grid-column: 4;
+  grid-row: 5;
+}
+
+.victory-board:not(:has(.board-node[data-position="11"]))
+  .board-node:nth-child(9) {
+  grid-column: 6;
+  grid-row: 5;
+}
+
+/* Genesis : ligne verticale uniquement */
+
+.victory-board:not(:has(.board-node[data-position="11"]))
+ ::before {
+  display: block;
+}
+
+.victory-board:not(:has(.board-node[data-position="11"]))
+ ::after {
+  display: none;
+}
+
+
+/* ---------------------------------------------------------
+   BRANCH — 11 POSITIONS
+--------------------------------------------------------- */
+
+/* Branch : ligne horizontale uniquement */
+
+.victory-board:has(.board-node[data-position="11"])
+ ::before {
+  display: none;
+}
+
+.victory-board:has(.board-node[data-position="11"])
+ ::after {
+  display: block;
+}
