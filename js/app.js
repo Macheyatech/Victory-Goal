@@ -615,6 +615,10 @@
         context.current_board
       )
         ? context.current_board
+        : Array.isArray(
+            context.pending_board
+          )
+        ? context.pending_board
         : [];
 
     if (currentMembership) {
