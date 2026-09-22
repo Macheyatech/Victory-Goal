@@ -440,9 +440,16 @@
       visiblePlans
         .map((plan) => {
           const isCurrent =
+            !!currentMembership &&
+            currentPlan?.id === plan.id;
+
+          const isPending =
+            !currentMembership &&
+            !!pendingApplication &&
             currentPlan?.id === plan.id;
 
           const isNext =
+            !!currentMembership &&
             nextPlan?.id === plan.id;
 
           const colors =
@@ -453,6 +460,7 @@
               class="
                 plan-card
                 ${isCurrent ? "active" : ""}
+                ${isPending ? "pending" : ""}
                 ${isNext ? "locked" : ""}
               "
               style="
@@ -501,6 +509,12 @@
                     ? `
                       <div class="plan-status current">
                         Niveau actuel
+                      </div>
+                    `
+                    : isPending
+                    ? `
+                      <div class="plan-status pending">
+                        ⏳ Demande en attente
                       </div>
                     `
                     : isNext
