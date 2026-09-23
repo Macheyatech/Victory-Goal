@@ -287,7 +287,18 @@ const VG_AUTH = {
       error?.error_description ||
       "";
 
+    const code = error?.code || "";
+    const status = error?.status || error?.statusCode || "";
+
     const normalized = message.toLowerCase();
+
+    console.error("Victory Goal Auth error:", {
+      message,
+      code,
+      status,
+      name: error?.name || "",
+      error
+    });
 
     if (
       normalized.includes("invalid login credentials")
@@ -322,9 +333,28 @@ const VG_AUTH = {
     }
 
     if (
+      code === "over_email_send_rate_limit" ||
+      normalized.includes("email rate limit") ||
+      normalized.includes("email send rate limit")
+    ) {
+      return "Supabase bloque actuellement l'envoi des e-mails de confirmation (limite d'envoi d'e-mails atteinte).";
+    }
+
+    if (
+      code === "over_request_rate_limit" ||
+      normalized.includes("request rate limit")
+    ) {
+      return "Supabase bloque actuellement trop de requêtes provenant de cette adresse IP.";
+    }
+
+    if (
       normalized.includes("rate limit")
     ) {
-      return "Trop de tentatives. Veuillez patienter avant de réessayer.";
+      return "Supabase a appliqué une limite de requêtes. Code: " +
+        (code || "non fourni") +
+        " | Statut: " +
+        (status || "inconnu") +
+        ".";
     }
 
     if (
@@ -334,10 +364,18 @@ const VG_AUTH = {
     }
 
     if (message) {
-      return message;
+      return message +
+        (code || status
+          ? " (code: " + (code || "inconnu") +
+            ", statut: " + (status || "inconnu") + ")"
+          : "");
     }
 
-    return "Une erreur est survenue. Veuillez réessayer.";
+    return "Une erreur est survenue. Code: " +
+      (code || "non fourni") +
+      " | Statut: " +
+      (status || "inconnu") +
+      ".";
   }
 };
 
