@@ -2614,3 +2614,332 @@ a:focus-visible {
  ::after {
   display: block;
 }
+
+
+/* =========================================================
+   BOARD MEMBER BADGES
+   Visual-only presentation: replaces circular nodes with
+   realistic Victory Goal shield badges.
+========================================================= */
+
+.victory-board .board-node {
+  position: relative;
+  width: var(--node-size);
+  height: var(--node-size);
+  min-height: var(--node-size);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(
+    50% 0%,
+    91% 11%,
+    94% 61%,
+    82% 82%,
+    50% 100%,
+    18% 82%,
+    6% 61%,
+    9% 11%
+  );
+  background:
+    radial-gradient(
+      circle at 35% 18%,
+      rgba(255, 255, 255, 0.28),
+      transparent 27%
+    ),
+    linear-gradient(
+      155deg,
+      color-mix(
+        in srgb,
+        var(--board-primary, var(--gold)) 92%,
+        white
+      ),
+      color-mix(
+        in srgb,
+        var(--board-primary, var(--gold)) 62%,
+        #5b3a08
+      )
+    );
+  box-shadow: none;
+  filter:
+    drop-shadow(
+      0 9px 10px rgba(0, 0, 0, 0.28)
+    )
+    drop-shadow(
+      0 0 9px
+      color-mix(
+        in srgb,
+        var(--board-primary, var(--gold)) 20%,
+        transparent
+      )
+    );
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+
+.victory-board .board-node::before {
+  content: "VG";
+  position: absolute;
+  top: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.22);
+  font-size: 19px;
+  font-weight: 900;
+  letter-spacing: -0.08em;
+  pointer-events: none;
+}
+
+.victory-board .board-node::after {
+  content: "";
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  bottom: 7%;
+  height: 18%;
+  border-radius: 50%;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.16),
+      transparent
+    );
+  pointer-events: none;
+}
+
+.victory-board .board-node:hover {
+  transform: translateY(-3px) scale(1.035);
+  border: 0;
+  filter:
+    drop-shadow(
+      0 13px 15px rgba(0, 0, 0, 0.36)
+    )
+    drop-shadow(
+      0 0 13px
+      color-mix(
+        in srgb,
+        var(--board-primary, var(--gold)) 32%,
+        transparent
+      )
+    );
+}
+
+.victory-board .board-node .board-username,
+.victory-board .board-node .board-node-label {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: none;
+  margin: 7px 0 0;
+  padding: 6px 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(
+        in srgb,
+        var(--board-primary, var(--gold)) 96%,
+        white
+      ),
+      color-mix(
+        in srgb,
+        var(--board-primary, var(--gold)) 76%,
+        #8a5a08
+      )
+    );
+  color: #171006;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+}
+
+.victory-board .board-node .board-username:hover {
+  color: #171006;
+  text-decoration: none;
+}
+
+.victory-board .board-node .board-role {
+  position: relative;
+  z-index: 2;
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 6px;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.victory-board .board-node.empty {
+  opacity: 0.34;
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.11),
+      rgba(255, 255, 255, 0.025)
+    );
+  filter: none;
+}
+
+.victory-board .board-node.empty::before {
+  content: "VG";
+  color: rgba(255, 255, 255, 0.12);
+}
+
+.victory-board .board-node.empty::after {
+  display: none;
+}
+
+.victory-board .board-node.pending {
+  background:
+    linear-gradient(
+      155deg,
+      #f4cf72,
+      #9a6a16
+    );
+  filter:
+    drop-shadow(
+      0 9px 10px rgba(0, 0, 0, 0.25)
+    )
+    drop-shadow(
+      0 0 10px rgba(233, 185, 95, 0.28)
+    );
+}
+
+.victory-board .board-node.pending .board-pending {
+  position: relative;
+  z-index: 2;
+  margin-top: 4px;
+  color: #fff8df;
+  font-size: 6px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.victory-board .board-node.current-user {
+  filter:
+    drop-shadow(
+      0 10px 12px rgba(0, 0, 0, 0.3)
+    )
+    drop-shadow(
+      0 0 15px
+      color-mix(
+        in srgb,
+        var(--board-primary, var(--gold)) 36%,
+        transparent
+      )
+    );
+}
+
+/* Légende: badge légèrement plus imposant, sans changer la structure. */
+.victory-board .board-node:nth-child(1) {
+  width: 100px;
+  height: 100px;
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(
+    50% 0%,
+    91% 11%,
+    94% 61%,
+    82% 82%,
+    50% 100%,
+    18% 82%,
+    6% 61%,
+    9% 11%
+  );
+}
+
+.victory-board .board-node:nth-child(2),
+.victory-board .board-node:nth-child(3) {
+  width: 91px;
+  height: 91px;
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(
+    50% 0%,
+    91% 11%,
+    94% 61%,
+    82% 82%,
+    50% 100%,
+    18% 82%,
+    6% 61%,
+    9% 11%
+  );
+}
+
+@media (max-width: 700px) {
+  .victory-board .board-node {
+    width: var(--node-size) !important;
+    height: var(--node-size) !important;
+    min-height: var(--node-size);
+  }
+
+  .victory-board .board-node:nth-child(1) {
+    width: 78px !important;
+    height: 78px !important;
+  }
+
+  .victory-board .board-node:nth-child(2),
+  .victory-board .board-node:nth-child(3) {
+    width: 70px !important;
+    height: 70px !important;
+  }
+
+  .victory-board .board-node .board-username,
+  .victory-board .board-node .board-node-label {
+    padding: 5px 4px;
+    font-size: 8px;
+  }
+
+  .victory-board .board-node .board-role,
+  .victory-board .board-node .board-pending {
+    font-size: 5px;
+  }
+}
+
+@media (max-width: 520px) {
+  .victory-board .board-node:nth-child(1) {
+    width: 69px !important;
+    height: 69px !important;
+  }
+
+  .victory-board .board-node:nth-child(2),
+  .victory-board .board-node:nth-child(3) {
+    width: 62px !important;
+    height: 62px !important;
+  }
+
+  .victory-board .board-node .board-username,
+  .victory-board .board-node .board-node-label {
+    padding: 4px 3px;
+    font-size: 7px;
+  }
+}
+
+@media (max-width: 420px) {
+  .victory-board .board-node:nth-child(1) {
+    width: 63px !important;
+    height: 63px !important;
+  }
+
+  .victory-board .board-node:nth-child(2),
+  .victory-board .board-node:nth-child(3) {
+    width: 56px !important;
+    height: 56px !important;
+  }
+
+  .victory-board .board-node .board-username,
+  .victory-board .board-node .board-node-label {
+    padding: 3px 2px;
+    font-size: 6px;
+  }
+}
