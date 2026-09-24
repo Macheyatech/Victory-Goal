@@ -1260,6 +1260,13 @@
           row.member_role
         );
 
+      const roleClass =
+        row.member_role === "legend"
+          ? "legend"
+          : row.member_role === "constructor"
+          ? "constructor"
+          : "member";
+
       const isMe =
         row.user_id ===
         viewerUserId;
@@ -1267,7 +1274,7 @@
       if (!isMe) {
         return `
           <div
-            class="board-node occupied"
+            class="board-node occupied ${roleClass}"
             data-position="${position}"
           >
 
@@ -1299,6 +1306,7 @@
             board-node
             occupied
             current-user
+            ${roleClass}
           "
           data-position="${position}"
         >
