@@ -467,9 +467,11 @@
         palette.legendSoft,
 
       legend:
+        plan?.color_primary ||
         palette.legend,
 
       legendSoft:
+        plan?.color_secondary ||
         palette.legendSoft,
 
       constructor:
