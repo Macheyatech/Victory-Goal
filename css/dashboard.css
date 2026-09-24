@@ -3154,3 +3154,186 @@ a:focus-visible {
       drop-shadow(0 0 58px rgba(255, 174, 0, 0.62));
   }
 }
+
+
+/* =========================================================
+   PLAN-BASED ROLE PALETTE
+   Same role structure, different visual identity per plan.
+========================================================= */
+
+.victory-board .board-node.member {
+  background:
+    radial-gradient(
+      circle at 34% 17%,
+      rgba(255, 255, 255, 0.24),
+      transparent 27%
+    ),
+    linear-gradient(
+      155deg,
+      var(--board-member-soft),
+      var(--board-member)
+    );
+
+  filter:
+    drop-shadow(0 8px 10px rgba(0, 0, 0, 0.26))
+    drop-shadow(
+      0 0 8px
+      color-mix(
+        in srgb,
+        var(--board-member) 35%,
+        transparent
+      )
+    );
+}
+
+.victory-board .board-node.member .board-username {
+  background:
+    linear-gradient(
+      180deg,
+      var(--board-member-soft),
+      var(--board-member)
+    );
+
+  color: #111827;
+}
+
+.victory-board .board-node.constructor {
+  background:
+    radial-gradient(
+      circle at 34% 17%,
+      rgba(255, 255, 255, 0.30),
+      transparent 27%
+    ),
+    linear-gradient(
+      155deg,
+      var(--board-constructor-soft),
+      var(--board-constructor)
+    );
+
+  filter:
+    drop-shadow(0 9px 11px rgba(0, 0, 0, 0.30))
+    drop-shadow(
+      0 0 13px
+      color-mix(
+        in srgb,
+        var(--board-constructor) 55%,
+        transparent
+      )
+    );
+}
+
+.victory-board .board-node.constructor .board-username {
+  background:
+    linear-gradient(
+      180deg,
+      var(--board-constructor-soft),
+      var(--board-constructor)
+    );
+
+  color: #0f172a;
+}
+
+.victory-board .board-node.legend {
+  background:
+    radial-gradient(
+      circle at 34% 14%,
+      rgba(255, 255, 255, 0.60),
+      transparent 25%
+    ),
+    linear-gradient(
+      155deg,
+      var(--board-legend-soft),
+      var(--board-legend)
+    );
+
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.48),
+    inset 0 -13px 22px rgba(0, 0, 0, 0.18);
+
+  filter:
+    drop-shadow(0 12px 14px rgba(0, 0, 0, 0.36))
+    drop-shadow(
+      0 0 13px
+      color-mix(
+        in srgb,
+        var(--board-legend) 80%,
+        transparent
+      )
+    )
+    drop-shadow(
+      0 0 30px
+      color-mix(
+        in srgb,
+        var(--board-legend) 55%,
+        transparent
+      )
+    );
+
+  animation: victoryPlanLegendGlow 2.2s ease-in-out infinite;
+}
+
+.victory-board .board-node.legend .board-username {
+  background:
+    linear-gradient(
+      180deg,
+      var(--board-legend-soft),
+      var(--board-legend)
+    );
+
+  color: #171006;
+}
+
+.victory-board .board-node.legend .board-role {
+  color: #ffffff;
+  text-shadow:
+    0 0 7px
+    color-mix(
+      in srgb,
+      var(--board-legend-soft) 75%,
+      transparent
+    );
+}
+
+@keyframes victoryPlanLegendGlow {
+  0%, 100% {
+    filter:
+      drop-shadow(0 12px 14px rgba(0, 0, 0, 0.36))
+      drop-shadow(
+        0 0 12px
+        color-mix(
+          in srgb,
+          var(--board-legend) 70%,
+          transparent
+        )
+      )
+      drop-shadow(
+        0 0 27px
+        color-mix(
+          in srgb,
+          var(--board-legend) 48%,
+          transparent
+        )
+      );
+  }
+
+  50% {
+    filter:
+      drop-shadow(0 12px 14px rgba(0, 0, 0, 0.36))
+      drop-shadow(
+        0 0 19px
+        color-mix(
+          in srgb,
+          var(--board-legend-soft) 92%,
+          transparent
+        )
+      )
+      drop-shadow(
+        0 0 39px
+        color-mix(
+          in srgb,
+          var(--board-legend) 70%,
+          transparent
+        )
+      );
+  }
+}
