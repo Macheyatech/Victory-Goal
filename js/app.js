@@ -376,14 +376,113 @@
   }
 
   function getPlanColors(plan) {
+    const sequence =
+      Number(plan?.sequence_no) || 1;
+
+    /*
+     * Chaque plan possède sa propre identité visuelle.
+     * Les trois rôles restent distincts à l'intérieur
+     * du même plan: Légende, Constructeur et Membres.
+     */
+    const palettes = {
+      1: {
+        legend: "#F4B400",
+        legendSoft: "#FFE082",
+        constructor: "#1598C5",
+        constructorSoft: "#8EE7FF",
+        member: "#7A8798",
+        memberSoft: "#D8DEE7"
+      },
+      2: {
+        legend: "#FF7A00",
+        legendSoft: "#FFD08A",
+        constructor: "#7C3AED",
+        constructorSoft: "#C4B5FD",
+        member: "#64748B",
+        memberSoft: "#CBD5E1"
+      },
+      3: {
+        legend: "#A855F7",
+        legendSoft: "#E9D5FF",
+        constructor: "#DB2777",
+        constructorSoft: "#F9A8D4",
+        member: "#64748B",
+        memberSoft: "#CBD5E1"
+      },
+      4: {
+        legend: "#10B981",
+        legendSoft: "#A7F3D0",
+        constructor: "#0891B2",
+        constructorSoft: "#A5F3FC",
+        member: "#64748B",
+        memberSoft: "#CBD5E1"
+      },
+      5: {
+        legend: "#D4A72C",
+        legendSoft: "#FDE68A",
+        constructor: "#EA580C",
+        constructorSoft: "#FED7AA",
+        member: "#475569",
+        memberSoft: "#CBD5E1"
+      },
+      6: {
+        legend: "#E11D48",
+        legendSoft: "#FECDD3",
+        constructor: "#2563EB",
+        constructorSoft: "#93C5FD",
+        member: "#64748B",
+        memberSoft: "#CBD5E1"
+      },
+      7: {
+        legend: "#6366F1",
+        legendSoft: "#C7D2FE",
+        constructor: "#14B8A6",
+        constructorSoft: "#99F6E4",
+        member: "#475569",
+        memberSoft: "#CBD5E1"
+      },
+      8: {
+        legend: "#C026D3",
+        legendSoft: "#F0ABFC",
+        constructor: "#65A30D",
+        constructorSoft: "#BEF264",
+        member: "#57534E",
+        memberSoft: "#D6D3D1"
+      }
+    };
+
+    const palette =
+      palettes[sequence] ||
+      palettes[
+        ((sequence - 1) % 8) + 1
+      ];
+
     return {
       primary:
         plan?.color_primary ||
-        "#D4AF37",
+        palette.legend,
 
       secondary:
         plan?.color_secondary ||
-        "#8F6B1F"
+        palette.legendSoft,
+
+      legend:
+        palette.legend,
+
+      legendSoft:
+        palette.legendSoft,
+
+      constructor:
+        palette.constructor,
+
+      constructorSoft:
+        palette.constructorSoft,
+
+      member:
+        palette.member,
+
+      memberSoft:
+        palette.memberSoft
     };
   }
 
@@ -1171,6 +1270,24 @@
           )};
           --board-secondary:${escapeHtml(
             colors.secondary
+          )};
+          --board-legend:${escapeHtml(
+            colors.legend
+          )};
+          --board-legend-soft:${escapeHtml(
+            colors.legendSoft
+          )};
+          --board-constructor:${escapeHtml(
+            colors.constructor
+          )};
+          --board-constructor-soft:${escapeHtml(
+            colors.constructorSoft
+          )};
+          --board-member:${escapeHtml(
+            colors.member
+          )};
+          --board-member-soft:${escapeHtml(
+            colors.memberSoft
           )};
         "
       >
