@@ -2656,25 +2656,32 @@ a:focus-visible {
       155deg,
       color-mix(
         in srgb,
-        var(--board-primary, var(--gold)) 92%,
+        var(--board-secondary, var(--gold-light)) 88%,
         white
       ),
       color-mix(
         in srgb,
-        var(--board-primary, var(--gold)) 62%,
-        #5b3a08
+        var(--board-primary, var(--gold)) 82%,
+        #3b2505
+      ) 58%,
+      color-mix(
+        in srgb,
+        var(--board-primary, var(--gold)) 58%,
+        #171006
       )
     );
-  box-shadow: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -10px 18px rgba(0, 0, 0, 0.18);
   filter:
     drop-shadow(
       0 9px 10px rgba(0, 0, 0, 0.28)
     )
     drop-shadow(
-      0 0 9px
+      0 0 12px
       color-mix(
         in srgb,
-        var(--board-primary, var(--gold)) 20%,
+        var(--board-primary, var(--gold)) 42%,
         transparent
       )
     );
@@ -2828,19 +2835,19 @@ a:focus-visible {
 .victory-board .board-node.current-user {
   filter:
     drop-shadow(
-      0 10px 12px rgba(0, 0, 0, 0.3)
+      0 12px 14px rgba(0, 0, 0, 0.34)
     )
     drop-shadow(
-      0 0 15px
+      0 0 16px
       color-mix(
         in srgb,
-        var(--board-primary, var(--gold)) 36%,
+        var(--board-primary, var(--gold)) 55%,
         transparent
       )
     );
 }
 
-/* Légende: badge légèrement plus imposant, sans changer la structure. */
+/* Légende: badge plus imposant et nettement plus lumineux. */
 .victory-board .board-node:nth-child(1) {
   width: 100px;
   height: 100px;
@@ -2941,5 +2948,62 @@ a:focus-visible {
   .victory-board .board-node .board-node-label {
     padding: 3px 2px;
     font-size: 6px;
+  }
+}
+
+
+/* =========================================================
+   LEGEND — INTENSE GOLDEN GLOW
+========================================================= */
+
+.victory-board .board-node:nth-child(1) {
+  background:
+    radial-gradient(
+      circle at 35% 16%,
+      rgba(255, 255, 255, 0.48),
+      transparent 25%
+    ),
+    linear-gradient(
+      155deg,
+      #fff1a8 0%,
+      #f5c84c 34%,
+      #d99a18 68%,
+      #8a5708 100%
+    );
+
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -12px 20px rgba(80, 45, 0, 0.22);
+
+  filter:
+    drop-shadow(0 12px 14px rgba(0, 0, 0, 0.38))
+    drop-shadow(0 0 10px rgba(255, 211, 76, 0.92))
+    drop-shadow(0 0 24px rgba(255, 194, 38, 0.72))
+    drop-shadow(0 0 42px rgba(255, 174, 0, 0.42));
+  animation: legendGlow 2.4s ease-in-out infinite;
+}
+
+.victory-board .board-node:nth-child(1)::before {
+  color: rgba(255, 255, 255, 0.34);
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.55),
+    0 0 16px rgba(255, 208, 65, 0.7);
+}
+
+@keyframes legendGlow {
+  0%, 100% {
+    filter:
+      drop-shadow(0 12px 14px rgba(0, 0, 0, 0.38))
+      drop-shadow(0 0 10px rgba(255, 211, 76, 0.86))
+      drop-shadow(0 0 24px rgba(255, 194, 38, 0.62))
+      drop-shadow(0 0 38px rgba(255, 174, 0, 0.34));
+  }
+
+  50% {
+    filter:
+      drop-shadow(0 12px 14px rgba(0, 0, 0, 0.38))
+      drop-shadow(0 0 16px rgba(255, 224, 105, 1))
+      drop-shadow(0 0 32px rgba(255, 194, 38, 0.86))
+      drop-shadow(0 0 52px rgba(255, 174, 0, 0.58));
   }
 }
