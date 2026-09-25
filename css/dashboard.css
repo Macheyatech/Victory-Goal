@@ -3337,3 +3337,27 @@ a:focus-visible {
       );
   }
 }
+
+
+/* Center member names perfectly inside every board badge. */
+.victory-board .board-node .board-username,
+.victory-board .board-node .board-node-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-align-last: center;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.1;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.victory-board .board-node .board-username {
+  position: relative;
+  left: 0;
+  right: 0;
+  transform: none;
+}
