@@ -3361,3 +3361,166 @@ a:focus-visible {
   right: 0;
   transform: none;
 }
+
+
+/* =========================================================
+   BOARD BADGE POLISH — LARGER + SIDE STRIPES
+========================================================= */
+
+.victory-board .board-node {
+  width: calc(var(--node-size) + 6px);
+  height: calc(var(--node-size) + 6px);
+}
+
+/* Two subtle decorative stripe zones, kept on the left/right
+   so the centered username remains completely clear. */
+.victory-board .board-node.member,
+.victory-board .board-node.constructor,
+.victory-board .board-node.legend {
+  background-image:
+    linear-gradient(
+      112deg,
+      transparent 0%,
+      transparent 34%,
+      color-mix(in srgb, var(--board-member-soft) 48%, transparent) 42%,
+      transparent 51%,
+      transparent 100%
+    ),
+    linear-gradient(
+      112deg,
+      transparent 0%,
+      transparent 34%,
+      color-mix(in srgb, var(--board-member-soft) 48%, transparent) 42%,
+      transparent 51%,
+      transparent 100%
+    ),
+    var(--board-badge-base, linear-gradient(155deg, var(--board-secondary), var(--board-primary)));
+  background-size: 26% 100%, 26% 100%, 100% 100%;
+  background-position: left center, right center, center;
+  background-repeat: no-repeat;
+}
+
+/* Stripe tone follows the role, while staying within the plan palette. */
+.victory-board .board-node.member {
+  --board-badge-base: linear-gradient(155deg, var(--board-member-soft), var(--board-member));
+  --board-stripe: var(--board-member-soft);
+  background-image:
+    linear-gradient(
+      112deg,
+      transparent 0%,
+      transparent 30%,
+      color-mix(in srgb, var(--board-stripe) 78%, white) 43%,
+      transparent 55%,
+      transparent 100%
+    ),
+    linear-gradient(
+      68deg,
+      transparent 0%,
+      transparent 30%,
+      color-mix(in srgb, var(--board-stripe) 78%, white) 43%,
+      transparent 55%,
+      transparent 100%
+    ),
+    var(--board-badge-base);
+  background-size: 24% 100%, 24% 100%, 100% 100%;
+  background-position: left center, right center, center;
+  background-repeat: no-repeat;
+}
+
+.victory-board .board-node.constructor {
+  --board-badge-base: linear-gradient(155deg, var(--board-constructor-soft), var(--board-constructor));
+  --board-stripe: var(--board-constructor-soft);
+  background-image:
+    linear-gradient(
+      112deg,
+      transparent 0%,
+      transparent 30%,
+      color-mix(in srgb, var(--board-stripe) 82%, white) 43%,
+      transparent 55%,
+      transparent 100%
+    ),
+    linear-gradient(
+      68deg,
+      transparent 0%,
+      transparent 30%,
+      color-mix(in srgb, var(--board-stripe) 82%, white) 43%,
+      transparent 55%,
+      transparent 100%
+    ),
+    var(--board-badge-base);
+  background-size: 24% 100%, 24% 100%, 100% 100%;
+  background-position: left center, right center, center;
+  background-repeat: no-repeat;
+}
+
+.victory-board .board-node.legend {
+  --board-badge-base: linear-gradient(155deg, var(--board-legend-soft), var(--board-legend));
+  --board-stripe: var(--board-legend-soft);
+  background-image:
+    linear-gradient(
+      112deg,
+      transparent 0%,
+      transparent 27%,
+      rgba(255, 255, 255, 0.48) 41%,
+      transparent 54%,
+      transparent 100%
+    ),
+    linear-gradient(
+      68deg,
+      transparent 0%,
+      transparent 27%,
+      rgba(255, 255, 255, 0.48) 41%,
+      transparent 54%,
+      transparent 100%
+    ),
+    var(--board-badge-base);
+  background-size: 27% 100%, 27% 100%, 100% 100%;
+  background-position: left center, right center, center;
+  background-repeat: no-repeat;
+}
+
+/* Keep the two side accents visible on smaller screens without
+   changing the table structure. */
+@media (max-width: 700px) {
+  .victory-board .board-node {
+    width: calc(var(--node-size) + 3px) !important;
+    height: calc(var(--node-size) + 3px) !important;
+  }
+
+  .victory-board .board-node:nth-child(1) {
+    width: 82px !important;
+    height: 82px !important;
+  }
+
+  .victory-board .board-node:nth-child(2),
+  .victory-board .board-node:nth-child(3) {
+    width: 74px !important;
+    height: 74px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .victory-board .board-node:nth-child(1) {
+    width: 73px !important;
+    height: 73px !important;
+  }
+
+  .victory-board .board-node:nth-child(2),
+  .victory-board .board-node:nth-child(3) {
+    width: 66px !important;
+    height: 66px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .victory-board .board-node:nth-child(1) {
+    width: 67px !important;
+    height: 67px !important;
+  }
+
+  .victory-board .board-node:nth-child(2),
+  .victory-board .board-node:nth-child(3) {
+    width: 59px !important;
+    height: 59px !important;
+  }
+}
