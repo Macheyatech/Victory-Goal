@@ -3524,3 +3524,253 @@ a:focus-visible {
     height: 59px !important;
   }
 }
+
+
+/* =========================================================
+   REALISTIC SHIELD MEMBER BADGES
+   Visual-only override: preserves table positions and role colors.
+========================================================= */
+.victory-board .board-node {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  width: calc(var(--node-size) + 8px);
+  height: calc(var(--node-size) + 18px);
+  min-width: 0;
+  border-radius: 14px 14px 22px 22px;
+  clip-path: polygon(50% 0%, 94% 12%, 91% 63%, 78% 83%, 50% 100%, 22% 83%, 9% 63%, 6% 12%);
+  border: 0;
+  padding: 10px 7px 17px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background:
+    linear-gradient(90deg, transparent 0 12%, rgba(255,255,255,.12) 12.5%, transparent 18%, transparent 82%, rgba(255,255,255,.12) 87.5%, transparent 88%),
+    radial-gradient(ellipse at 50% 22%, rgba(255,255,255,.28), transparent 42%),
+    linear-gradient(155deg, var(--board-role-soft, #d8dee7), var(--board-role, #64748b) 38%, #111827 86%);
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.58),
+    inset 0 0 0 5px rgba(5,12,26,.72),
+    inset 0 0 16px rgba(0,0,0,.58),
+    0 8px 18px rgba(0,0,0,.35);
+  transition: transform .2s ease, filter .2s ease, box-shadow .2s ease;
+}
+
+.victory-board .board-node::before {
+  content: "V";
+  position: absolute;
+  z-index: -1;
+  inset: 9px 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,.16);
+  font-size: clamp(30px, 5vw, 48px);
+  font-weight: 1000;
+  font-style: italic;
+  line-height: 1;
+  text-shadow: 0 2px 6px rgba(0,0,0,.55);
+  pointer-events: none;
+}
+
+.victory-board .board-node::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 20%;
+  right: 20%;
+  bottom: 12px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.8), transparent);
+  opacity: .7;
+  pointer-events: none;
+}
+
+.victory-board .board-node.member {
+  --board-role: var(--board-member, #64748b);
+  --board-role-soft: var(--board-member-soft, #cbd5e1);
+}
+
+.victory-board .board-node.constructor {
+  --board-role: var(--board-constructor, #1598c5);
+  --board-role-soft: var(--board-constructor-soft, #8ee7ff);
+}
+
+.victory-board .board-node.legend {
+  --board-role: var(--board-legend, #f4b400);
+  --board-role-soft: var(--board-legend-soft, #ffe082);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--board-legend, #f4b400) 68%, transparent));
+  animation: victoryShieldLegendGlow 2.2s ease-in-out infinite;
+}
+
+.victory-board .board-node.occupied {
+  border: 0;
+}
+
+.victory-board .board-node.occupied:hover {
+  transform: translateY(-3px) scale(1.035);
+  filter: brightness(1.12) drop-shadow(0 7px 10px rgba(0,0,0,.25));
+}
+
+.victory-board .board-node .board-username,
+.victory-board .board-node .board-node-label {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 112%;
+  max-width: 112%;
+  min-height: 24px;
+  margin: 0;
+  padding: 4px 5px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 4px;
+  background: linear-gradient(180deg, #ffe17a, #e6ad14);
+  color: #172033;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.05;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  box-shadow: 0 2px 5px rgba(0,0,0,.4);
+}
+
+.victory-board .board-node .board-username:hover {
+  color: #111827;
+  text-decoration: none;
+  filter: brightness(1.08);
+}
+
+.victory-board .board-node .board-role,
+.victory-board .board-node .board-pending {
+  position: relative;
+  z-index: 2;
+  margin-top: 1px;
+  color: #fff;
+  font-size: 6px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0,0,0,.9);
+}
+
+.victory-board .board-node.current-user .board-username {
+  background: linear-gradient(180deg, #8ee7ff, #1684b4);
+  color: #061323;
+}
+
+.victory-board .board-node.legend .board-username {
+  background: linear-gradient(180deg, #fff0a8, var(--board-legend, #f4b400));
+}
+
+.victory-board .board-node.constructor .board-username {
+  background: linear-gradient(180deg, var(--board-constructor-soft), var(--board-constructor));
+  color: #071321;
+}
+
+.victory-board .board-node.empty {
+  opacity: .42;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(255,255,255,.14), transparent 42%),
+    linear-gradient(155deg, #64748b, #1e293b 78%);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.38), inset 0 0 0 5px rgba(5,12,26,.7);
+}
+
+.victory-board .board-node.empty::before {
+  content: "V";
+  color: rgba(255,255,255,.18);
+}
+
+.victory-board .board-node.empty::after {
+  content: "";
+  width: auto;
+  height: 2px;
+  border-radius: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent);
+}
+
+.victory-board .board-node.pending {
+  --board-role: #e9b95f;
+  --board-role-soft: #fff0bd;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(255,255,255,.2), transparent 42%),
+    repeating-linear-gradient(135deg, rgba(233,185,95,.2) 0 5px, transparent 5px 10px),
+    linear-gradient(155deg, #8a682c, #1e293b 78%);
+}
+
+.victory-board .board-node:nth-child(1) {
+  width: calc(var(--node-size) + 18px);
+  height: calc(var(--node-size) + 28px);
+  z-index: 4;
+}
+
+.victory-board .board-node:nth-child(2),
+.victory-board .board-node:nth-child(3) {
+  width: calc(var(--node-size) + 10px);
+  height: calc(var(--node-size) + 20px);
+  z-index: 3;
+}
+
+@keyframes victoryShieldLegendGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--board-legend, #f4b400) 52%, transparent));
+  }
+  50% {
+    filter: drop-shadow(0 0 13px color-mix(in srgb, var(--board-legend, #f4b400) 86%, transparent));
+  }
+}
+
+@media (max-width: 700px) {
+  .victory-board {
+    --node-size: 68px;
+    --board-gap: 10px;
+    padding: 22px 10px 26px;
+    row-gap: 16px;
+  }
+
+  .victory-board .board-node .board-username,
+  .victory-board .board-node .board-node-label {
+    font-size: 9px;
+    min-height: 22px;
+  }
+}
+
+@media (max-width: 420px) {
+  .victory-board {
+    --node-size: 56px;
+    --board-gap: 5px;
+    padding: 18px 5px 22px;
+    row-gap: 12px;
+  }
+
+  .victory-board .board-node {
+    width: calc(var(--node-size) + 5px);
+    height: calc(var(--node-size) + 13px);
+    padding: 7px 4px 13px;
+  }
+
+  .victory-board .board-node:nth-child(1) {
+    width: calc(var(--node-size) + 11px);
+    height: calc(var(--node-size) + 20px);
+  }
+
+  .victory-board .board-node:nth-child(2),
+  .victory-board .board-node:nth-child(3) {
+    width: calc(var(--node-size) + 7px);
+    height: calc(var(--node-size) + 16px);
+  }
+
+  .victory-board .board-node .board-username,
+  .victory-board .board-node .board-node-label {
+    font-size: 8px;
+    padding: 3px 3px;
+    min-height: 20px;
+  }
+}
