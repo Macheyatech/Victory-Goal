@@ -3947,3 +3947,149 @@ a:focus-visible {
     linear-gradient(150deg, #fff0bd, #9b762f 31%, #263247 67%, #07111e) !important;
   box-shadow: inset 0 0 0 2px #ffeab0, inset 0 0 0 5px #77541b, 0 8px 17px rgba(0,0,0,.55) !important;
 }
+
+
+/* Emblem-inspired shield finish. Keeps each plan's existing role colors unchanged. */
+.victory-board .board-node {
+  isolation: isolate !important;
+  overflow: visible !important;
+  clip-path: polygon(50% 0%, 86% 10%, 97% 17%, 92% 57%, 80% 78%, 50% 100%, 20% 78%, 8% 57%, 3% 17%, 14% 10%) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 12px 6px 18px !important;
+  background:
+    linear-gradient(90deg, transparent 0 11%, rgba(255,255,255,.2) 12%, transparent 16%, transparent 84%, rgba(255,255,255,.18) 88%, transparent 89%),
+    radial-gradient(ellipse at 50% 17%, rgba(255,255,255,.3), transparent 34%),
+    linear-gradient(145deg, var(--board-role-soft, var(--board-member-soft, #cbd5e1)) 0%, var(--board-role, var(--board-member, #64748b)) 26%, color-mix(in srgb, var(--board-role, var(--board-member, #64748b)) 60%, #07111e) 58%, #06101d 100%) !important;
+  box-shadow:
+    inset 0 0 0 2px rgba(255,246,205,.95),
+    inset 0 0 0 4px rgba(185,133,42,.95),
+    inset 0 0 0 6px rgba(255,255,255,.22),
+    inset 0 0 18px rgba(0,0,0,.72),
+    0 8px 18px rgba(0,0,0,.52) !important;
+}
+
+.victory-board .board-node::before {
+  content: "♛" !important;
+  z-index: 0 !important;
+  inset: 5px 4px auto !important;
+  height: 42% !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  color: color-mix(in srgb, var(--board-role-soft, var(--board-member-soft, #cbd5e1)) 66%, white) !important;
+  font-family: Georgia, serif !important;
+  font-size: clamp(23px, 4vw, 36px) !important;
+  font-style: normal !important;
+  line-height: 1 !important;
+  text-shadow: 0 2px 0 rgba(0,0,0,.75), 0 0 8px rgba(255,255,255,.18) !important;
+  pointer-events: none !important;
+}
+
+.victory-board .board-node::after {
+  content: "" !important;
+  z-index: 0 !important;
+  left: 20% !important;
+  right: 20% !important;
+  bottom: 12px !important;
+  height: 3px !important;
+  background: linear-gradient(90deg, transparent, #fff5cb, #b77a1e, #fff5cb, transparent) !important;
+  box-shadow: 0 0 5px rgba(255,220,126,.48) !important;
+  opacity: .95 !important;
+  pointer-events: none !important;
+}
+
+.victory-board .board-node.occupied.member {
+  --board-role: var(--board-member, #64748b);
+  --board-role-soft: var(--board-member-soft, #cbd5e1);
+}
+.victory-board .board-node.occupied.constructor {
+  --board-role: var(--board-constructor, #1598c5);
+  --board-role-soft: var(--board-constructor-soft, #8ee7ff);
+}
+.victory-board .board-node.occupied.legend {
+  --board-role: var(--board-legend, #f4b400);
+  --board-role-soft: var(--board-legend-soft, #ffe082);
+}
+
+.victory-board .board-node .board-username {
+  position: relative !important;
+  z-index: 2 !important;
+  width: 126% !important;
+  max-width: 126% !important;
+  min-height: 26px !important;
+  margin-top: 12px !important;
+  padding: 5px 3px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 2px !important;
+  border: 1px solid rgba(255,255,255,.72) !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--board-role-soft) 92%, white), var(--board-role) 56%, color-mix(in srgb, var(--board-role) 68%, #050b14)) !important;
+  color: #fff !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  line-height: 1.05 !important;
+  text-align: center !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.85) !important;
+  box-shadow: 0 2px 0 rgba(0,0,0,.72), 0 4px 8px rgba(0,0,0,.38) !important;
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
+}
+
+.victory-board .board-node .board-role,
+.victory-board .board-node .board-pending {
+  position: relative !important;
+  z-index: 2 !important;
+  margin-top: 4px !important;
+  color: #fff !important;
+  font-size: 6px !important;
+  font-weight: 950 !important;
+  letter-spacing: .045em !important;
+  text-shadow: 0 1px 3px #000 !important;
+}
+
+.victory-board .board-node.occupied.legend {
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--board-legend) 68%, transparent)) !important;
+}
+.victory-board .board-node.occupied.legend .board-username {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--board-legend-soft) 82%, white), var(--board-legend) 58%, #3b2808) !important;
+}
+.victory-board .board-node.occupied.constructor .board-username {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--board-constructor-soft) 88%, white), var(--board-constructor) 58%, #061522) !important;
+}
+.victory-board .board-node.occupied.member .board-username {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--board-member-soft) 88%, white), var(--board-member) 58%, #101827) !important;
+}
+
+.victory-board .board-node.empty {
+  background:
+    linear-gradient(90deg, transparent 0 11%, rgba(255,255,255,.1) 12%, transparent 16%, transparent 84%, rgba(255,255,255,.1) 88%, transparent 89%),
+    linear-gradient(145deg, #273447, #0b1320 68%, #04080e) !important;
+  box-shadow: inset 0 0 0 2px rgba(220,225,235,.3), inset 0 0 0 5px rgba(185,133,42,.28), inset 0 0 18px rgba(0,0,0,.75) !important;
+}
+.victory-board .board-node.empty::before {
+  content: "♛" !important;
+  color: rgba(220,225,235,.18) !important;
+}
+.victory-board .board-node.pending {
+  background:
+    linear-gradient(90deg, transparent 0 11%, rgba(255,255,255,.15) 12%, transparent 16%, transparent 84%, rgba(255,255,255,.12) 88%, transparent 89%),
+    radial-gradient(ellipse at 50% 17%, rgba(255,255,255,.25), transparent 34%),
+    linear-gradient(145deg, #8d7441, #4d3a1b 40%, #111a28 100%) !important;
+}
+
+@media (max-width: 420px) {
+  .victory-board .board-node .board-username {
+    width: 128% !important;
+    max-width: 128% !important;
+    min-height: 20px !important;
+    margin-top: 9px !important;
+    padding: 3px 2px !important;
+    font-size: 8px !important;
+  }
+  .victory-board .board-node .board-role,
+  .victory-board .board-node .board-pending {
+    font-size: 5px !important;
+  }
+}
