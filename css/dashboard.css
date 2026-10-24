@@ -4234,3 +4234,70 @@ a:focus-visible {
     font-size: 6px !important;
   }
 }
+
+
+/* Screenshot follow-up: remove Android fallback glyph and improve real mobile readability. */
+.victory-board {
+  background:
+    radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--board-primary) 27%, #172338), transparent 68%),
+    linear-gradient(180deg, #101a2b 0%, #0a1220 52%, #060b13 100%) !important;
+}
+
+.victory-board .board-node::before {
+  content: "VG" !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 12px 0 auto !important;
+  width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  transform: none !important;
+  color: color-mix(in srgb, var(--board-role-soft, var(--board-member-soft, #cbd5e1)) 52%, transparent) !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: clamp(27px, 6vw, 43px) !important;
+  font-weight: 1000 !important;
+  font-style: italic !important;
+  letter-spacing: -.08em !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  text-shadow: 0 2px 3px rgba(0,0,0,.8), 0 0 9px rgba(255,255,255,.16) !important;
+}
+
+.victory-board .board-node.empty::before {
+  content: "VG" !important;
+  color: rgba(220,230,245,.2) !important;
+}
+
+.victory-board .board-node .board-username {
+  font-size: 14px !important;
+  min-height: 36px !important;
+  padding: 7px 5px !important;
+  margin-top: 20px !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-weight: 900 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.15 !important;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (max-width: 700px) {
+  .victory-board .board-node .board-username {
+    font-size: 12px !important;
+    min-height: 32px !important;
+    margin-top: 16px !important;
+    padding: 6px 4px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .victory-board .board-node .board-username {
+    font-size: 10px !important;
+    min-height: 28px !important;
+    margin-top: 12px !important;
+    padding: 4px 2px !important;
+  }
+  .victory-board .board-node::before {
+    font-size: 28px !important;
+  }
+}
