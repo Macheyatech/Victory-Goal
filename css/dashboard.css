@@ -3869,3 +3869,81 @@ a:focus-visible {
     padding: 3px 2px;
   }
 }
+
+
+/* Final premium board correction: black board surface and jewel-toned shields. */
+.victory-board {
+  background:
+    radial-gradient(ellipse at 50% 12%, color-mix(in srgb, var(--board-primary) 13%, transparent), transparent 58%),
+    linear-gradient(145deg, #05090e 0%, #080e17 52%, #030609 100%) !important;
+  border: 1px solid color-mix(in srgb, var(--board-primary) 55%, #101827) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.035), inset 0 0 36px rgba(0,0,0,.8), 0 18px 45px rgba(0,0,0,.42) !important;
+}
+
+.victory-board .board-node.occupied.member,
+.victory-board .board-node.occupied.constructor,
+.victory-board .board-node.occupied.legend,
+.victory-board .board-node.pending,
+.victory-board .board-node.empty {
+  border: 0 !important;
+  border-radius: 0 !important;
+  clip-path: polygon(50% 0%, 88% 10%, 98% 17%, 91% 62%, 76% 83%, 50% 100%, 24% 83%, 9% 62%, 2% 17%, 12% 10%) !important;
+}
+
+.victory-board .board-node.occupied.member {
+  background:
+    linear-gradient(115deg, transparent 0 12%, rgba(255,255,255,.32) 13%, transparent 17%, transparent 82%, rgba(255,255,255,.22) 87%, transparent 88%),
+    radial-gradient(ellipse at 50% 15%, rgba(255,255,255,.48), transparent 37%),
+    linear-gradient(150deg, var(--board-role-soft, var(--board-member-soft)) 0%, var(--board-role, var(--board-member)) 24%, #075d42 53%, #02281f 82%, #010e0b 100%) !important;
+  box-shadow: inset 0 0 0 2px #d9fff0, inset 0 0 0 4px #16885e, inset 0 0 0 6px rgba(0,18,12,.88), inset 0 0 20px rgba(0,0,0,.72), 0 8px 17px rgba(0,0,0,.55) !important;
+}
+
+.victory-board .board-node.occupied.constructor {
+  background:
+    linear-gradient(115deg, transparent 0 12%, rgba(255,255,255,.28) 13%, transparent 17%, transparent 82%, rgba(255,255,255,.2) 87%, transparent 88%),
+    radial-gradient(ellipse at 50% 15%, rgba(255,255,255,.42), transparent 37%),
+    linear-gradient(150deg, var(--board-constructor-soft) 0%, var(--board-constructor) 30%, #10344a 66%, #06121d 100%) !important;
+  box-shadow: inset 0 0 0 2px rgba(226,250,255,.95), inset 0 0 0 5px color-mix(in srgb, var(--board-constructor) 72%, #07111e), inset 0 0 18px rgba(0,0,0,.7), 0 8px 17px rgba(0,0,0,.55) !important;
+}
+
+.victory-board .board-node.occupied.legend {
+  background:
+    linear-gradient(115deg, transparent 0 12%, rgba(255,255,255,.34) 13%, transparent 17%, transparent 82%, rgba(255,255,255,.25) 87%, transparent 88%),
+    radial-gradient(ellipse at 50% 15%, rgba(255,255,255,.62), transparent 37%),
+    linear-gradient(150deg, #fff5bd 0%, var(--board-legend-soft) 18%, var(--board-legend) 42%, #81500a 68%, #160e03 100%) !important;
+  box-shadow: inset 0 0 0 2px #fff6ca, inset 0 0 0 5px #b98222, inset 0 0 18px rgba(0,0,0,.72), 0 0 14px color-mix(in srgb, var(--board-legend) 45%, transparent) !important;
+}
+
+.victory-board .board-node.occupied.member .board-username {
+  background: linear-gradient(180deg, #d8fff0 0%, #42d6a0 38%, #078354 100%) !important;
+  border-color: #c4ffe9 !important;
+  color: #031a12 !important;
+}
+
+.victory-board .board-node.occupied.constructor .board-username {
+  background: linear-gradient(180deg, #e4fbff 0%, var(--board-constructor-soft) 35%, var(--board-constructor) 100%) !important;
+  border-color: #e5fcff !important;
+  color: #061522 !important;
+}
+
+.victory-board .board-node.occupied.legend .board-username {
+  background: linear-gradient(180deg, #fffbe0 0%, var(--board-legend-soft) 35%, var(--board-legend) 100%) !important;
+  border-color: #fff7cb !important;
+  color: #201501 !important;
+}
+
+.victory-board .board-node.empty {
+  opacity: .42 !important;
+  background:
+    linear-gradient(115deg, transparent 0 12%, rgba(255,255,255,.12) 13%, transparent 17%, transparent 82%, rgba(255,255,255,.1) 87%, transparent 88%),
+    linear-gradient(150deg, #354154, #111b2a 58%, #05090f) !important;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--board-primary) 58%, #d5dbe5), inset 0 0 0 5px #101827 !important;
+}
+
+.victory-board .board-node.pending {
+  background:
+    radial-gradient(ellipse at 50% 15%, rgba(255,255,255,.28), transparent 37%),
+    repeating-linear-gradient(135deg, rgba(255,222,139,.18) 0 5px, transparent 5px 10px),
+    linear-gradient(150deg, #fff0bd, #9b762f 31%, #263247 67%, #07111e) !important;
+  box-shadow: inset 0 0 0 2px #ffeab0, inset 0 0 0 5px #77541b, 0 8px 17px rgba(0,0,0,.55) !important;
+}
