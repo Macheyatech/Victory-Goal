@@ -4093,3 +4093,144 @@ a:focus-visible {
     font-size: 5px !important;
   }
 }
+
+
+/* Readability and scale pass: brighter, taller board with larger crisp labels. */
+.victory-board {
+  min-height: 760px !important;
+  padding: 46px 22px 54px !important;
+  row-gap: 30px !important;
+  column-gap: 22px !important;
+  background:
+    radial-gradient(ellipse at 50% 18%, color-mix(in srgb, var(--board-primary) 24%, transparent), transparent 62%),
+    linear-gradient(180deg, #0c1422 0%, #080e18 48%, #050910 100%) !important;
+  border-color: color-mix(in srgb, var(--board-primary) 72%, #d8e4f5) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), inset 0 0 48px rgba(0,0,0,.5), 0 18px 45px rgba(0,0,0,.42) !important;
+}
+
+.victory-board .board-node {
+  width: calc(var(--node-size) + 30px) !important;
+  height: calc(var(--node-size) + 52px) !important;
+  padding: 16px 8px 22px !important;
+  filter: drop-shadow(0 5px 7px rgba(0,0,0,.35));
+}
+
+.victory-board .board-node:nth-child(1) {
+  width: calc(var(--node-size) + 38px) !important;
+  height: calc(var(--node-size) + 60px) !important;
+}
+
+.victory-board .board-node:nth-child(2),
+.victory-board .board-node:nth-child(3) {
+  width: calc(var(--node-size) + 32px) !important;
+  height: calc(var(--node-size) + 54px) !important;
+}
+
+.victory-board .board-node::before {
+  font-size: clamp(32px, 5vw, 48px) !important;
+  color: color-mix(in srgb, var(--board-role-soft, var(--board-member-soft, #cbd5e1)) 80%, white) !important;
+  text-shadow: 0 2px 0 rgba(0,0,0,.8), 0 0 12px rgba(255,255,255,.25) !important;
+}
+
+.victory-board .board-node .board-username {
+  width: 132% !important;
+  max-width: 132% !important;
+  min-height: 34px !important;
+  margin-top: 18px !important;
+  padding: 7px 5px !important;
+  font-size: 13px !important;
+  line-height: 1.15 !important;
+  font-weight: 900 !important;
+  letter-spacing: 0 !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,.35) !important;
+  box-shadow: 0 2px 0 rgba(0,0,0,.65), 0 5px 10px rgba(0,0,0,.35) !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+.victory-board .board-node .board-role,
+.victory-board .board-node .board-pending {
+  margin-top: 5px !important;
+  font-size: 8px !important;
+  line-height: 1.1 !important;
+  letter-spacing: .055em !important;
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,.95) !important;
+}
+
+.victory-board .board-node.empty {
+  opacity: .55 !important;
+}
+
+@media (max-width: 700px) {
+  .victory-board {
+    min-height: 690px !important;
+    padding: 34px 12px 42px !important;
+    row-gap: 24px !important;
+    column-gap: 10px !important;
+  }
+  .victory-board .board-node {
+    width: calc(var(--node-size) + 20px) !important;
+    height: calc(var(--node-size) + 38px) !important;
+  }
+  .victory-board .board-node:nth-child(1) {
+    width: calc(var(--node-size) + 26px) !important;
+    height: calc(var(--node-size) + 44px) !important;
+  }
+  .victory-board .board-node:nth-child(2),
+  .victory-board .board-node:nth-child(3) {
+    width: calc(var(--node-size) + 22px) !important;
+    height: calc(var(--node-size) + 40px) !important;
+  }
+  .victory-board .board-node .board-username {
+    width: 134% !important;
+    max-width: 134% !important;
+    min-height: 29px !important;
+    margin-top: 14px !important;
+    font-size: 11px !important;
+    padding: 5px 3px !important;
+  }
+  .victory-board .board-node .board-role,
+  .victory-board .board-node .board-pending {
+    font-size: 7px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .victory-board {
+    min-height: 620px !important;
+    padding: 28px 7px 34px !important;
+    row-gap: 18px !important;
+    column-gap: 5px !important;
+  }
+  .victory-board .board-node {
+    width: calc(var(--node-size) + 12px) !important;
+    height: calc(var(--node-size) + 28px) !important;
+    padding: 10px 4px 16px !important;
+  }
+  .victory-board .board-node:nth-child(1) {
+    width: calc(var(--node-size) + 17px) !important;
+    height: calc(var(--node-size) + 34px) !important;
+  }
+  .victory-board .board-node:nth-child(2),
+  .victory-board .board-node:nth-child(3) {
+    width: calc(var(--node-size) + 14px) !important;
+    height: calc(var(--node-size) + 30px) !important;
+  }
+  .victory-board .board-node::before {
+    font-size: 28px !important;
+  }
+  .victory-board .board-node .board-username {
+    width: 136% !important;
+    max-width: 136% !important;
+    min-height: 25px !important;
+    margin-top: 11px !important;
+    padding: 4px 2px !important;
+    font-size: 9px !important;
+    line-height: 1.05 !important;
+  }
+  .victory-board .board-node .board-role,
+  .victory-board .board-node .board-pending {
+    font-size: 6px !important;
+  }
+}
