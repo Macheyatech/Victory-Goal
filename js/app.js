@@ -1300,17 +1300,30 @@
     container.hidden =
       !boardExpanded;
 
+    const gemstoneNames = {
+      1: "Émeraude",
+      2: "Rubis",
+      3: "Saphir",
+      4: "Diamant",
+      5: "Améthyste",
+      6: "Onyx",
+      7: "Opale",
+      8: "Topaze"
+    };
+    const gemstoneName =
+      gemstoneNames[Number(currentPlan.sequence_no)] ||
+      "Gemstone";
+
     setText(
       "#board-plan-name",
-      currentPlan.name ||
-        "—"
+      gemstoneName
     );
 
     setText(
       "#board-division-name",
-      isBranch
-        ? "Division de branche"
-        : "Table Genesis"
+      (isBranch ? "Branche" : "Genesis") +
+        " · " +
+        (currentPlan.name || "Plan")
     );
 
     setupBoardToggle();
